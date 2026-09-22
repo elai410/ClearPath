@@ -1,42 +1,44 @@
-import { urgencyColor } from "../constants.js";
+import { Badge, Button, Card, Field } from "../components/ui.jsx";
+import { useLang } from "../lib/i18n/LanguageContext.jsx";
 
 export default function Checkin({ dept, patient, name, setName, phone, setPhone, ui, loading, onCheckin, onBack }) {
+  const { t } = useLang();
   return (
-    <div style={S.section}>
-      <div style={{ ...S.card, borderLeft: "4px solid #3B8BD4" }}>
-        <p style={S.label}>{ui.label_routed}</p>
-        <h2 style={S.deptName}>{dept.name}</h2>
-        <p style={{ color: "#64748b", fontSize: 14, margin: "4px 0" }}>
-          Floor {dept.floor} · Room {dept.room}
+    <div className="stack">
+      <Card>
+        <p className="kicker">{ui.label_routed}</p>
+        <h2 className="display">{dept.name}</h2>
+        <p className="lede">
+          {ui.label_floor} {dept.floor} · {ui.label_room} {dept.room}
         </p>
-        <p style={{ color: "#94a3b8", fontSize: 13 }}>{patient.reason}</p>
-        <span style={{ ...S.badge, background: urgencyColor(patient.urgency) }}>
-          {patient.urgency} {ui.urgency_label}
-        </span>
-      </div>
+        <p className="small muted" style={{ marginTop: 8 }}>{patient.reason}</p>
+        <div className="row" style={{ marginTop: 12 }}>
+          <Badge tone={patient.urgency}>{patient.urgency} {ui.urgency_label}</Badge>
+          {patient.detectedLanguage && <Badge tone="accent">{patient.detectedLanguage}</Badge>}
+          {patient.sentiment && <Badge>{patient.sentiment}</Badge>}
+        </div>
+      </Card>
 
-      <div style={S.card}>
-        <input value={name} onChange={e => setName(e.target.value)}
-          placeholder={ui.label_name} style={S.input}/>
-        <input value={phone} onChange={e => setPhone(e.target.value)}
-          placeholder={ui.label_phone} style={S.input} type="tel"/>
-      </div>
+      <Card>
+        <p className="kicker">{t("ui.journey.next")}</p>
+        <ol className="small" style={{ margin: 0, paddingLeft: 18, color: "var(--ink-2)", lineHeight: 1.7 }}>
+          <li>{t("ui.checkin.next.1")}</li>
+          <li>{t("ui.checkin.next.2", { room: dept.room })}</li>
+          <li>{t("ui.checkin.next.3")}</li>
+        </ol>
+      </Card>
 
-      <button onClick={onCheckin} disabled={loading} style={S.btn}>
-        {loading ? "…" : ui.btn_checkin}
-      </button>
-      <button onClick={onBack} style={S.ghost}>{ui.back}</button>
+      <Card>
+        <div className="stack">
+          <Field label={ui.label_name} value={name} onChange={(e) => setName(e.target.value)} placeholder={t("ui.checkin.namePlaceholder")} autoComplete="name" />
+          <Field label={ui.label_phone} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("ui.checkin.phonePlaceholder")} type="tel" autoComplete="tel" />
+        </div>
+      </Card>
+
+      <Button onClick={onCheckin} disabled={loading} block>
+        {loading ? t("ui.btn.checkingIn") : ui.btn_checkin}
+      </Button>
+      <Button onClick={onBack} variant="ghost" block>{ui.back}</Button>
     </div>
   );
 }
-
-const S = {
-  section:  { display: "flex", flexDirection: "column", gap: 12 },
-  card:     { background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column" },
-  label:    { fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 4px" },
-  deptName: { fontSize: 22, fontWeight: 700, margin: "4px 0", color: "#0f172a" },
-  badge:    { alignSelf: "flex-start", borderRadius: 99, padding: "3px 10px", fontSize: 12, fontWeight: 600, marginTop: 8 },
-  input:    { width: "100%", boxSizing: "border-box", padding: 10, borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 14, fontFamily: "inherit", marginBottom: 8 },
-  btn:      { padding: "13px 20px", borderRadius: 10, border: "none", background: "#3B8BD4", color: "#fff", fontWeight: 600, fontSize: 15, cursor: "pointer" },
-  ghost:    { padding: "10px 20px", borderRadius: 10, border: "1px solid #e2e8f0", background: "transparent", color: "#64748b", fontSize: 14, cursor: "pointer" },
-};

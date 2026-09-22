@@ -1,0 +1,190 @@
+{
+  "generatedAt": "2026-09-21T20:14:51.782Z",
+  "howToLook": {
+    "staff": "http://localhost:5186/dashboard",
+    "operate": "Open Operate. The first card is the next reversible move, or an instruction to leave the floor alone.",
+    "evidence": "Open Evidence. SpO2 89% on James Carter is consequential and unverified. Batch confirm does not include it.",
+    "companion": "Any follow URL below is a caregiver view of the same plan, without the medical story."
+  },
+  "sampleRequests": {
+    "spokenRound": "Pulse 72. SpO2 98%. Blood pressure 118 over 76. Temperature 36.6. Respiratory rate 16.",
+    "capture": "POST /api/evidence/capture { patientId, text, speaker: 'nurse' }",
+    "stageMove": "POST /api/control/stage  — stages the recommended reversible move; refused if it is clinical",
+    "patientPlan": "GET /api/patients/:id/plan",
+    "floor": "GET /api/floor"
+  },
+  "patients": [
+    {
+      "name": "James Carter",
+      "visitKind": "emergency",
+      "status": "in_progress",
+      "language": "en",
+      "follow": "/follow/97b0dacc",
+      "situation": "Severe chest pain radiating to my left arm, started 20 minutes ago",
+      "demonstrates": "ACS rule-out. Troponin interval is the clock. Expediting a scanner cannot move it.",
+      "capture": [
+        "Monitor frame: SpO2 89%",
+        "Blood pressure 118 over 76",
+        "Let's get a CT."
+      ]
+    },
+    {
+      "name": "David Kim",
+      "visitKind": "emergency",
+      "status": "pending_test",
+      "language": "en",
+      "follow": "/follow/72743a50",
+      "situation": "I was in a car accident, my head hurts and I'm dizzy",
+      "demonstrates": "Head CT is the rate limiter. Transport is already done. The read, not the scan, will hold discharge.",
+      "capture": [
+        "Pulse 96"
+      ]
+    },
+    {
+      "name": "Priya Nair",
+      "visitKind": "emergency",
+      "status": "pending_signature",
+      "language": "en",
+      "follow": "/follow/240bde95",
+      "situation": "I think I'm ready to go home but nobody has brought the paperwork",
+      "demonstrates": "Clinically ready. Discharge started at the end of the visit instead of at arrival. Ride and pharmacy still unstarted.",
+      "capture": [
+        "We can probably discharge after the labs."
+      ]
+    },
+    {
+      "name": "Rosa Delgado",
+      "visitKind": "emergency",
+      "status": "waiting",
+      "language": "es",
+      "follow": "/follow/48133610",
+      "situation": "Mi hija tiene fiebre muy alta y convulsiones",
+      "demonstrates": "Child with fever and seizures. Interpreter requested at the door, still not at bedside. That delay is fully predictable from language at check-in.",
+      "capture": [
+        "Temperature 39.4"
+      ]
+    },
+    {
+      "name": "Fatima Al-Hassan",
+      "visitKind": "obstetric",
+      "status": "in_progress",
+      "language": "ar",
+      "follow": "/follow/6434b2fa",
+      "situation": "أنا حامل في الشهر الثامن وأشعر بآلام في البطن",
+      "demonstrates": "Third trimester pain. Bed is the constraint, not the evaluation. Arabic, traveling without a partner.",
+      "capture": []
+    },
+    {
+      "name": "Maria Santos",
+      "visitKind": "emergency",
+      "status": "waiting",
+      "language": "en",
+      "follow": "/follow/808e2f38",
+      "situation": "Dog bite on my hand, the dog was a stray and I don't know if it was vaccinated",
+      "demonstrates": "Rabies prophylaxis. Pharmacy is preparing a weight-based dose that was knowable from the triage note.",
+      "capture": []
+    },
+    {
+      "name": "Michael Torres",
+      "visitKind": "emergency",
+      "status": "waiting",
+      "language": "en",
+      "follow": "/follow/ad8858dd",
+      "situation": "bat flew into my house last night and scratched my arm while I was trying to get it out",
+      "demonstrates": "Same clinic, same pharmacy, same dose type as Maria Santos. Two visits, one prep if anyone notices.",
+      "capture": []
+    },
+    {
+      "name": "Amara Okafor",
+      "visitKind": "emergency",
+      "status": "pending_test",
+      "language": "en",
+      "follow": "/follow/a3ee758d",
+      "situation": "I have been having severe abdominal pain for two days, no appetite",
+      "demonstrates": "CT abdomen is still reading. Surgical consult is 30% likely. Disposition waits on the read, not the consult.",
+      "capture": [
+        "I'll call surgery if the CT looks surgical."
+      ]
+    },
+    {
+      "name": "Thomas Greene",
+      "visitKind": "emergency",
+      "status": "pending_test",
+      "language": "en",
+      "follow": "/follow/a6fb4192",
+      "situation": "I fell off a ladder and my wrist is swollen and painful, can't move it. I use a walker at home.",
+      "demonstrates": "Likely fracture. X-ray in progress. PT eval is the silent discharge blocker — three hours of lead time, usually requested at hour six.",
+      "capture": []
+    },
+    {
+      "name": "Wei Zhang",
+      "visitKind": "imaging",
+      "status": "waiting",
+      "language": "zh",
+      "follow": "/follow/5053adb7",
+      "situation": "我需要做MRI检查，医生已经开了单子",
+      "demonstrates": "MRI referral. Calm. Language is Mandarin. Interpreter not yet requested because nobody looked at the language field.",
+      "capture": []
+    },
+    {
+      "name": "Carlos Mendez",
+      "visitKind": "behavioral",
+      "status": "waiting",
+      "language": "es",
+      "follow": "/follow/bccb9d2e",
+      "situation": "Necesito ver a un psiquiatra, he tenido pensamientos muy difíciles",
+      "demonstrates": "Psychiatric evaluation. Placement is the real bottleneck, and it has not started. Should not wait in a public queue.",
+      "capture": []
+    },
+    {
+      "name": "Anna Kowalski",
+      "visitKind": "behavioral",
+      "status": "in_progress",
+      "language": "en",
+      "follow": "/follow/b8dbeb42",
+      "situation": "I have been feeling very sad and isolated for months, my family made me come",
+      "demonstrates": "In evaluation. Safety plan and placement can start before disposition is decided. They have not.",
+      "capture": []
+    },
+    {
+      "name": "Samuel Osei",
+      "visitKind": "imaging",
+      "status": "pending_transport",
+      "language": "fr",
+      "follow": "/follow/94047c90",
+      "situation": "Je dois faire une mammographie de routine",
+      "demonstrates": "Routine imaging. Waiting on transport between pavilions — a 15-minute job treated as a department.",
+      "capture": []
+    },
+    {
+      "name": "Helen Park",
+      "visitKind": "clinic",
+      "status": "called",
+      "language": "en",
+      "follow": "/follow/29dba21b",
+      "situation": "I've had blurry vision for a week and my optometrist said to come here",
+      "demonstrates": "Called. Room is ready. Nothing is actually pending except the walk.",
+      "capture": []
+    },
+    {
+      "name": "Linda Hoffman",
+      "visitKind": "clinic",
+      "status": "waiting",
+      "language": "en",
+      "follow": "/follow/ec204a0e",
+      "situation": "I need a pulmonary function test, my doctor referred me. I get short of breath climbing stairs.",
+      "demonstrates": "Routine PFT. Short wait. ECG can run at the chair if anyone sends the machine.",
+      "capture": []
+    },
+    {
+      "name": "Ibrahim Hassan",
+      "visitKind": "preop",
+      "status": "waiting",
+      "language": "en",
+      "follow": "/follow/5669a2b3",
+      "situation": "I need to get my pre-admission testing done before my surgery next week",
+      "demonstrates": "Pre-op. Labs can be drawn while registration finishes. They are waiting in sequence instead.",
+      "capture": []
+    }
+  ]
+}

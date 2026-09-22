@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "node server.js",
+    "seed": "node seed.js",
     "build": "vite build",
+    "test": "node --test \"tests/**/*.test.js\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },

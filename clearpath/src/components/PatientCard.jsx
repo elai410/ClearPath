@@ -1,186 +1,213 @@
 import { useState } from "react";
-import { DEPT_COLORS, DEPT_LIST, DEPT_NAMES } from "../constants.js";
-import { updateStatus, STATUS_LABELS, STATUS_COLORS } from "../api/backend.js";
+import {
+  advancePatient, aiBrief, aiDischargeDraft, callPatient, dischargePatient,
+  escalateBlocker, movePatient, prepareDischarge, resolveBlocker, updateStatus,
+  STATUS_LABELS,
+} from "../api/backend.js";
+import { DEPT_LIST, DEPT_NAMES, DEPT_ROOM } from "../constants.js";
+import { formatWait } from "../lib/journey.js";
+import { Badge, Button, Modal } from "./ui.jsx";
+import { BlockerList } from "./JourneyTimeline.jsx";
 
-const URGENCY_COLORS = {
-  high:   { bg: "#fee2e2", text: "#b91c1c" },
-  medium: { bg: "#fef9c3", text: "#a16207" },
-  low:    { bg: "#dcfce7", text: "#15803d" },
-};
-
-const SENTIMENT_STYLES = {
-  calm:       { bg: "#dcfce7", color: "#15803d", icon: "😌" },
-  anxious:    { bg: "#fef9c3", color: "#a16207", icon: "😟" },
-  scared:     { bg: "#fee2e2", color: "#b91c1c", icon: "😨" },
-  confused:   { bg: "#f3e8ff", color: "#7e22ce", icon: "😕" },
-  distressed: { bg: "#fee2e2", color: "#b91c1c", icon: "😰" },
-  "in-pain":  { bg: "#ffedd5", color: "#c2410c", icon: "😣" },
-};
-
-function timeSince(dateStr) {
-  const diff = Math.floor((Date.now() - new Date(dateStr + "Z")) / 1000 / 60);
-  if (diff < 1) return "just now";
-  if (diff === 1) return "1 min ago";
-  return `${diff} min ago`;
-}
-
-export default function PatientCard({ patient, onCallNext, onDischarge, onMove, onRefresh }) {
+export default function PatientCard({ patient, onRefresh }) {
+  const [expanded, setExpanded] = useState(false);
+  const [showMove, setShowMove] = useState(false);
+  const [moveDept, setMoveDept] = useState("");
   const [showDischarge, setShowDischarge] = useState(false);
-  const [instructions, setInstructions]   = useState("");
-  const [showMove, setShowMove]           = useState(false);
-  const [moveDept, setMoveDept]           = useState("");
-  const [expanded, setExpanded]           = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [instructions, setInstructions] = useState("");
+  const [brief, setBrief] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [draftNote, setDraftNote] = useState("");
 
-  const c  = DEPT_COLORS[patient.department] || DEPT_COLORS.triage;
-  const u  = URGENCY_COLORS[patient.urgency] || URGENCY_COLORS.low;
-  const s  = SENTIMENT_STYLES[patient.sentiment] || null;
-  const sc = STATUS_COLORS[patient.status] || STATUS_COLORS.waiting;
-  const isStuck = patient.is_stuck;
+  const stuck = patient.is_stuck;
+  const ready = patient.action?.kind === "advance";
 
-  async function handleStatusChange(newStatus) {
-    setUpdatingStatus(true);
+  async function run(fn) {
+    setBusy(true);
     try {
-      await updateStatus(patient.id, newStatus);
+      await fn();
       onRefresh();
-    } catch {}
-    setUpdatingStatus(false);
+    } catch {
+      /* keep UI usable */
+    }
+    setBusy(false);
+  }
+
+  async function handleBrief() {
+    setBusy(true);
+    try {
+      setBrief(await aiBrief(patient.id));
+    } catch {
+      setBrief({ text: "Could not generate a brief." });
+    }
+    setBusy(false);
+  }
+
+  async function handleDraft() {
+    setBusy(true);
+    try {
+      const draft = await aiDischargeDraft(patient.id, draftNote);
+      setInstructions(draft.text);
+      setDraftNote(draft.disclaimer || "");
+      setShowDischarge(true);
+    } catch {
+      setShowDischarge(true);
+    }
+    setBusy(false);
   }
 
   return (
-    <div style={{
-      ...S.card,
-      borderLeft: `4px solid ${isStuck ? "#f87171" : c.border}`,
-      background: isStuck ? "#fff8f8" : "#fff",
-    }}>
-
-      {/* Stuck banner */}
-      {isStuck && (
-        <div style={S.stuckBanner}>
-          ⚠ Waiting {patient.wait_minutes} min — needs attention
+    <article className={`pcard ${stuck ? "stuck" : ready ? "ready" : ""}`}>
+      {stuck && (
+        <div className="stuck-banner">
+          Delayed {formatWait(patient.wait_minutes)}
+          {patient.now?.waitingFor ? ` · waiting on ${patient.now.waitingFor}` : ""}
+          {patient.now?.owner ? ` · ${patient.now.owner}` : ""}
         </div>
       )}
 
-      {/* Top row */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={S.name}>{patient.name}</span>
-            <span style={{ ...S.badge, background: u.bg, color: u.text }}>{patient.urgency}</span>
-            <span style={{ ...S.badge, background: sc.bg, color: sc.color }}>
-              {STATUS_LABELS[patient.status] || patient.status}
-            </span>
-            {s && (
-              <span style={{ ...S.badge, background: s.bg, color: s.color }}>
-                {s.icon} {patient.sentiment}
-              </span>
+      <div className="spread" style={{ alignItems: "flex-start" }}>
+        <div>
+          <div className="row">
+            <strong style={{ fontSize: 16 }}>{patient.name}</strong>
+            <Badge tone={patient.urgency}>{patient.urgency}</Badge>
+            <Badge tone="accent">{STATUS_LABELS[patient.status] || patient.status}</Badge>
+            {patient.sentiment && <Badge>{patient.sentiment}</Badge>}
+            {patient.language && !/^english$/i.test(patient.language) && (
+              <Badge tone="violet">{patient.language}</Badge>
             )}
           </div>
-
-          {patient.sentimentNote && (
-            <p style={{ fontSize: 12, color: "#7e22ce", margin: "4px 0 0", fontStyle: "italic" }}>
-              "{patient.sentimentNote}"
-            </p>
-          )}
-
-          {patient.summary && (
-            <p style={{ fontSize: 13, color: "#334155", margin: "6px 0 2px", lineHeight: 1.5 }}>
-              {patient.summary}
-            </p>
-          )}
-
-          <p style={S.meta}>
-            {DEPT_NAMES[patient.department]} · {patient.room} · #{patient.queue_position} · {timeSince(patient.checked_in_at)}
+          <p className="small muted" style={{ margin: "4px 0 0" }}>
+            {DEPT_NAMES[patient.department]} · {formatWait(patient.wait_minutes)} · next: {patient.next_stage?.label}
           </p>
-
-          {patient.language && patient.language !== "English" && (
-            <span style={{ ...S.badge, background: "#f0f9ff", color: "#0369a1", marginTop: 4, display: "inline-block" }}>
-              {patient.language}
-            </span>
+          {patient.summary && (
+            <p className="small" style={{ margin: "8px 0 0", color: "var(--ink-2)" }}>{patient.summary}</p>
           )}
         </div>
-
-        <button onClick={() => setExpanded(!expanded)} style={S.expandBtn}>
-          {expanded ? "▲" : "▼"}
-        </button>
+        <Button variant="ghost" size="sm" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "Less" : "Details"}
+        </Button>
       </div>
 
-      {/* Expanded detail */}
-      {expanded && (
-        <div style={S.expandedDetail}>
-          <p style={S.detailLabel}>Original situation</p>
-          <p style={{ fontSize: 13, color: "#334155", margin: "0 0 8px", lineHeight: 1.6 }}>{patient.situation}</p>
-          <p style={S.detailLabel}>Triage reason</p>
-          <p style={{ fontSize: 13, color: "#334155", margin: 0 }}>{patient.reason}</p>
+      {patient.action && (
+        <div className="action-reason">
+          <strong>{patient.action.label}.</strong> {patient.action.reason}
         </div>
       )}
 
-      {/* Status update row */}
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>Status:</span>
+      {patient.blockers?.filter((b) => b.status !== "resolved").length > 0 && (
+        <BlockerList blockers={patient.blockers} compact />
+      )}
+
+      {expanded && (
+        <div className="card" style={{ marginTop: 12, boxShadow: "none", background: "var(--surface-2)" }}>
+          <p className="kicker">Original situation</p>
+          <p className="small" style={{ margin: "0 0 8px" }}>{patient.situation}</p>
+          {patient.sentimentNote && <p className="small muted">“{patient.sentimentNote}”</p>}
+
+          {/* Coordination advice written for staff — the patient sees their own
+              second-person version of this on their visit page. */}
+          {patient.parallel?.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <p className="kicker">Can run in parallel</p>
+              {patient.parallel.map((p) => (
+                <div key={p.id} style={{ marginBottom: 8 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.title}</div>
+                  <div className="small muted">{p.detail}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {brief && (
+            <p className="small" style={{ marginTop: 10 }}>
+              <strong>Brief.</strong> {brief.text}
+              {brief.source === "ai" && <span className="muted"> · AI assist</span>}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="row" style={{ marginTop: 12 }}>
+        {(patient.status === "waiting" || patient.urgency === "high") && (
+          <Button size="sm" onClick={() => run(() => callPatient(patient.id))} disabled={busy}>Call now</Button>
+        )}
+        {patient.action?.kind === "advance" && (
+          <Button size="sm" variant="sage" onClick={() => run(() => advancePatient(patient.id))} disabled={busy}>Advance</Button>
+        )}
+        {patient.action?.kind === "prepare-discharge" && (
+          <Button size="sm" variant="soft" onClick={() => run(() => prepareDischarge(patient.id))} disabled={busy}>Start going-home prep</Button>
+        )}
+        {patient.action?.blockerId && (
+          <>
+            <Button size="sm" variant="warn" onClick={() => run(() => escalateBlocker(patient.action.blockerId))} disabled={busy}>Escalate</Button>
+            <Button size="sm" variant="sage" onClick={() => run(() => resolveBlocker(patient.action.blockerId))} disabled={busy}>Mark done</Button>
+          </>
+        )}
+        <Button size="sm" variant="ghost" onClick={handleBrief} disabled={busy}>AI brief</Button>
+        <Button size="sm" variant="ghost" onClick={() => setShowMove((v) => !v)}>Move</Button>
+        <Button size="sm" variant="ghost" onClick={handleDraft} disabled={busy}>Discharge</Button>
+      </div>
+
+      {patient.open_blocker_count > 0 && expanded && (
+        <div className="row" style={{ marginTop: 8 }}>
+          {patient.blockers.filter((b) => b.status !== "resolved").map((b) => (
+            <Button key={b.id} size="sm" variant="ghost" onClick={() => run(() => resolveBlocker(b.id))} disabled={busy}>
+              Resolve {b.type_label || b.title}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      <div className="row" style={{ marginTop: 10 }}>
+        <span className="small muted">Status</span>
         <select
+          className="select"
+          style={{ flex: 1, padding: "8px 10px" }}
           value={patient.status}
-          onChange={e => handleStatusChange(e.target.value)}
-          disabled={updatingStatus}
-          style={{ ...S.select, flex: 1, fontSize: 13 }}>
-          {Object.entries(STATUS_LABELS).map(([val, label]) => (
+          disabled={busy}
+          onChange={(e) => run(() => updateStatus(patient.id, e.target.value))}
+        >
+          {Object.entries(STATUS_LABELS).filter(([k]) => k !== "discharged").map(([val, label]) => (
             <option key={val} value={val}>{label}</option>
           ))}
         </select>
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-        {patient.status === "waiting" && (
-          <button onClick={() => onCallNext(patient.department)} style={S.actionBtn}>
-            📣 Call next
-          </button>
-        )}
-        <button onClick={() => setShowMove(!showMove)} style={S.ghostBtn}>↪ Move</button>
-        <button onClick={() => setShowDischarge(!showDischarge)} style={{ ...S.ghostBtn, color: "#15803d" }}>
-          ✓ Discharge
-        </button>
-      </div>
-
       {showMove && (
-        <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-          <select value={moveDept} onChange={e => setMoveDept(e.target.value)} style={S.select}>
-            <option value="">Select department…</option>
-            {DEPT_LIST.filter(d => d !== patient.department).map(d => (
+        <div className="row" style={{ marginTop: 10 }}>
+          <select className="select" value={moveDept} onChange={(e) => setMoveDept(e.target.value)} style={{ flex: 1 }}>
+            <option value="">Move to…</option>
+            {DEPT_LIST.filter((d) => d !== patient.department).map((d) => (
               <option key={d} value={d}>{DEPT_NAMES[d]}</option>
             ))}
           </select>
-          <button onClick={() => { onMove(patient.id, moveDept); setShowMove(false); }} style={S.actionBtn}>
-            Move
-          </button>
+          <Button size="sm" onClick={() => {
+            const dest = DEPT_ROOM[moveDept];
+            run(() => movePatient(patient.id, moveDept, dest.room, dest.floor, `Transferred to ${DEPT_NAMES[moveDept]}`));
+            setShowMove(false);
+          }} disabled={!moveDept || busy}>Move</Button>
         </div>
       )}
 
       {showDischarge && (
-        <div style={{ marginTop: 10 }}>
-          <textarea value={instructions} onChange={e => setInstructions(e.target.value)}
-            placeholder="Discharge instructions for patient…" rows={3} style={S.textarea}/>
-          <button onClick={() => { onDischarge(patient.id, instructions); setShowDischarge(false); }}
-            style={{ ...S.actionBtn, marginTop: 8 }}>
-            Confirm discharge
-          </button>
-        </div>
+        <Modal title={`Discharge ${patient.name}`} onClose={() => setShowDischarge(false)}>
+          {draftNote && <p className="small muted" style={{ marginTop: 0 }}>{draftNote}</p>}
+          <textarea
+            className="field"
+            rows={6}
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Going-home instructions the patient will see…"
+          />
+          <div className="row" style={{ marginTop: 12, justifyContent: "flex-end" }}>
+            <Button variant="ghost" onClick={() => setShowDischarge(false)}>Cancel</Button>
+            <Button onClick={() => run(async () => {
+              await dischargePatient(patient.id, instructions);
+              setShowDischarge(false);
+            })}>Confirm discharge</Button>
+          </div>
+        </Modal>
       )}
-    </div>
+    </article>
   );
 }
-
-const S = {
-  card:          { borderRadius: 12, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07)" },
-  stuckBanner:   { background: "#fee2e2", color: "#b91c1c", fontSize: 12, fontWeight: 600, padding: "6px 10px", borderRadius: 6, marginBottom: 10 },
-  name:          { fontSize: 16, fontWeight: 700, color: "#0f172a" },
-  meta:          { fontSize: 12, color: "#94a3b8", margin: "4px 0 0" },
-  badge:         { borderRadius: 99, padding: "2px 8px", fontSize: 11, fontWeight: 600 },
-  expandBtn:     { background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 12, padding: "4px 8px" },
-  expandedDetail:{ background: "#f8fafc", borderRadius: 8, padding: "10px 12px", marginTop: 10 },
-  detailLabel:   { fontSize: 10, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 4px" },
-  actionBtn:     { padding: "7px 14px", borderRadius: 8, border: "none", background: "#3B8BD4", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" },
-  ghostBtn:      { padding: "7px 14px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 13, cursor: "pointer" },
-  select:        { padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 14, fontFamily: "inherit", background: "#fff" },
-  textarea:      { width: "100%", boxSizing: "border-box", padding: 10, borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, resize: "none", fontFamily: "inherit" },
-};

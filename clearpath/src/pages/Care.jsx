@@ -10,10 +10,9 @@ export default function Care({ dept, ui }) {
       </div>
 
       <div style={S.card}>
-        <p style={S.label}>What to expect</p>
-        <ol style={{ margin: 0, paddingLeft: 20, color: "#334155", fontSize: 14, lineHeight: 1.8 }}>
+<p style={S.label}>{ui.label_what_to_expect}</p>        <ol style={{ margin: 0, paddingLeft: 20, color: "#334155", fontSize: 14, lineHeight: 1.8 }}>
           {ui.expect.map((e, i) => <li key={i}>{e}</li>)}
-          <li>Average visit time: {dept?.wait} {ui.min}</li>
+          <li>{ui.label_avg_visit} {dept?.wait} {ui.min}</li>
         </ol>
       </div>
     </div>

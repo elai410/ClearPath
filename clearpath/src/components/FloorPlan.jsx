@@ -259,25 +259,22 @@ export default function FloorPlan({ activeRoom }) {
   const focusBuilding = focusId ? BUILDINGS.find(b => b.id === focusId) : null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="card" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 
       {/* Floor tabs */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         {FLOORS.map(f => (
-          <button key={f.key} onClick={() => setFloor(f.key)} style={{
-            padding: "4px 12px", borderRadius: 20, border: "1px solid",
-            borderColor: floor === f.key ? "#185FA5" : "#e2e8f0",
-            background: floor === f.key ? "#185FA5" : "transparent",
-            color: floor === f.key ? "#fff" : "#64748b",
-            fontSize: 11, cursor: "pointer",
-            fontWeight: floor === f.key ? 600 : 400,
+          <button key={f.key} onClick={() => setFloor(f.key)} className={`chip ${floor === f.key ? "on" : ""}`} style={{
+            borderColor: floor === f.key ? "var(--accent)" : "var(--line)",
+            background: floor === f.key ? "var(--accent)" : "var(--surface)",
+            color: floor === f.key ? "#fff" : "var(--ink-2)",
           }}>{f.label}</button>
         ))}
       </div>
 
       {/* Map */}
       <svg width="100%" viewBox="0 0 680 600"
-        style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "#f0f4f8" }}>
+        style={{ borderRadius: 12, border: "1px solid var(--line)", background: "#efe8dc" }}>
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
             markerWidth="6" markerHeight="6" orient="auto-start-reverse">
