@@ -46,7 +46,7 @@ export default function Journey({ journey, ui, dept, onArrived, showMap }) {
 
       {journey.operating?.clockBound && (
         <Card>
-          <p className="kicker">This wait cannot be expedited</p>
+          <p className="kicker">This wait can&apos;t be rushed</p>
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55 }}>
             {journey.operating.clockBound.guidance}
           </p>
@@ -54,10 +54,9 @@ export default function Journey({ journey, ui, dept, onArrived, showMap }) {
       )}
       {journey.operating?.blockedBy && !journey.operating.clockBound && (
         <Card>
-          <p className="kicker">What going home is waiting on</p>
+          <p className="kicker">What&apos;s still needed before you go home</p>
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55 }}>
             {journey.operating.blockedBy.label}
-            {journey.operating.blockedBy.why ? ` — ${journey.operating.blockedBy.why}` : ""}
           </p>
         </Card>
       )}
@@ -116,7 +115,7 @@ export default function Journey({ journey, ui, dept, onArrived, showMap }) {
         <Card>
           <p className="kicker">Someone waiting with you?</p>
           <p className="small" style={{ margin: "0 0 10px" }}>
-            Share a live, limited view of this visit — where you are, what you're waiting on, and what's next. It does not include your full medical story.
+            Share a live view with someone waiting with you — where you are, what you&apos;re waiting on, and what&apos;s next. It doesn&apos;t include your full medical story.
           </p>
           <Button
             variant="ghost"

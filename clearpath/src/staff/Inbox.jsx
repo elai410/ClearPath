@@ -7,7 +7,7 @@ import { Button, Card, Empty } from "../components/ui.jsx";
 
 const ROUND = "Pulse 72. SpO2 98%. Blood pressure 118 over 76. Temperature 36.6. Respiratory rate 16.";
 
-export function AgentFloor({ agent, onTick }) {
+export function AgentFloor({ agent, onTick, compact }) {
   const [busy, setBusy] = useState(false);
   if (!agent) return null;
 
@@ -23,38 +23,42 @@ export function AgentFloor({ agent, onTick }) {
   }
 
   return (
-    <Card className="trajectory">
-      <p className="kicker">Passive vitals agent</p>
-      <h2 style={{ margin: "0 0 6px", fontSize: 22 }}>
-        Watching {agent.watching} beds. {agent.silent} are quiet.
+    <Card className={`trajectory ${compact ? "agent-compact" : ""}`.trim()}>
+      <p className="kicker">Monitors</p>
+      <h2 style={{ margin: compact ? "0 0 8px" : "0 0 6px", fontSize: compact ? 18 : 22 }}>
+        Watching {agent.watching} beds. {agent.silent} look fine.
       </h2>
-      <p className="small muted" style={{ margin: "0 0 12px" }}>
-        Ordinary values stay on the stream. Only a change that matters becomes work, still unverified.
-      </p>
+      {!compact && (
+        <p className="small muted" style={{ margin: "0 0 12px" }}>
+          Normal numbers stay on the board. Only a change that matters shows up for you to check.
+        </p>
+      )}
       <div className="bed-grid">
         {agent.beds.map((bed) => (
           <div key={bed.patientId} className={`bed-row ${bed.watching ? (bed.exception ? "exception" : "quiet") : "off"}`}>
             <div className="spread">
               <strong>{bed.name}</strong>
               <span className="small muted">
-                {!bed.watching ? "no monitor" : bed.exception ? "exception" : "quiet"}
+                {!bed.watching ? "no monitor" : bed.exception ? "flag" : "ok"}
               </span>
             </div>
             <div className="vital-row">
               {(bed.vitals || []).map((v) => (
                 <span key={v.measure} className={`vital-chip ${v.consequential ? "hot" : ""}`}>{v.display}</span>
               ))}
-              {bed.watching && !(bed.vitals || []).length && <span className="small muted">Waiting on first frame</span>}
+              {bed.watching && !(bed.vitals || []).length && <span className="small muted">Waiting for the first reading</span>}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: compact ? 10 : 12 }}>
         <Button size="sm" disabled={busy} onClick={listen}>
-          {busy ? "Listening…" : "Listen now"}
+          {busy ? "Checking…" : "Check now"}
         </Button>
         <span className="small muted" style={{ marginLeft: 10 }}>
-          Tick {agent.tick}. The agent already runs on its own. This just advances the demo clock.
+          {compact
+            ? `Update ${agent.tick}`
+            : `Update ${agent.tick}. The monitors already run on their own — this just jumps the demo ahead.`}
         </span>
       </div>
     </Card>
@@ -91,17 +95,17 @@ export function CaptureRound({ onDone }) {
   }
 
   return (
-    <details className="card">
-      <summary className="small">Room has no monitor — capture a spoken round</summary>
+    <details className="card" id="rooms">
+      <summary className="small">Room has no monitor — enter vitals</summary>
       <p className="small muted" style={{ margin: "8px 0 10px" }}>
-        Speak or paste the measurements. They land as captured, not verified. Nothing here is written as fact.
+        Type what you heard. We&apos;ll log it so someone can confirm.
       </p>
       <div className="stack" style={{ gap: 8 }}>
         <select className="field" value={patientId} onChange={(e) => setPatientId(e.target.value)} aria-label="Patient">
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <textarea className="field" rows={3} value={text} onChange={(e) => setText(e.target.value)} aria-label="What was said" />
-        <Button disabled={busy || !patientId} onClick={capture}>Capture round</Button>
+        <Button disabled={busy || !patientId} onClick={capture}>Save vitals</Button>
       </div>
       {created && (
         <ul className="lineage" style={{ marginTop: 12 }}>
@@ -111,7 +115,7 @@ export function CaptureRound({ onDone }) {
               <strong>{claim.display}</strong>
             </li>
           ))}
-          {!created.length && <li><span className="small muted">Nothing in that sentence could be structured.</span></li>}
+          {!created.length && <li><span className="small muted">Couldn&apos;t pick out numbers in that.</span></li>}
         </ul>
       )}
     </details>
@@ -119,34 +123,39 @@ export function CaptureRound({ onDone }) {
 }
 
 /** One captured value. Confirming it is not treating. Correcting keeps the chain. */
-export function ClaimCard({ claim, actor = "staff", busy, onDone }) {
+export function ClaimCard({ claim, actor = "staff", busy, onDone, compact }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(claim.display);
   const [why, setWhy] = useState(false);
 
   return (
-    <Card className={`handoff-group ${claim.consequential ? "constraint resource" : ""}`.trim()}>
+    <Card className={`handoff-group ${claim.consequential ? "constraint resource" : ""} ${compact ? "claim-compact" : ""}`.trim()}>
       <div className="spread">
         <div>
-          <p className="kicker" style={{ margin: 0 }}>
-            {claim.kind === "intent" ? "Intention heard" : claim.evidence?.agent ? "Monitor spoke" : "Observation captured"}
-            {claim.evidence?.synthetic && !claim.evidence?.agent ? " · sample" : ""}
-          </p>
-          <h3 style={{ margin: "4px 0 0", fontSize: 18 }}>{claim.display}</h3>
+          {!compact && (
+            <p className="kicker" style={{ margin: 0 }}>
+              {claim.kind === "intent" ? "They asked for this" : claim.evidence?.agent ? "From the monitor" : "From the room"}
+              {claim.evidence?.synthetic && !claim.evidence?.agent ? " · sample" : ""}
+            </p>
+          )}
+          <h3 style={{ margin: compact ? "0" : "4px 0 0", fontSize: compact ? 16 : 18 }}>{claim.display}</h3>
           <p className="small muted" style={{ margin: "4px 0 0" }}>
-            {claim.patient_name || "Unknown patient"} · {claim.authority?.reason}
+            {claim.patient_name || "Unknown patient"}
+            {!compact && claim.authority?.reason ? ` · ${claim.authority.reason}` : ""}
           </p>
         </div>
         <span className={`ep ${claim.epistemic?.tone || "candidate"}`}>
-          {claim.consequential ? "check this one" : claim.epistemic?.label || "Captured"}
+          {claim.consequential ? "Needs a look" : claim.epistemic?.label || "Needs a look"}
         </span>
       </div>
-      <p className="small" style={{ margin: "10px 0" }}>
-        Evidence: “{claim.evidence?.quote || "none recorded"}”
-      </p>
-      <div className="row">
+      {!compact && (
+        <p className="small" style={{ margin: "10px 0" }}>
+          What we heard: “{claim.evidence?.quote || "nothing recorded"}”
+        </p>
+      )}
+      <div className="row" style={compact ? { marginTop: 8 } : undefined}>
         <Button size="sm" disabled={busy} onClick={() => onDone(() => verifyEvidence(claim.id, actor))}>
-          {claim.consequential ? "I checked the source" : "Confirm"}
+          {claim.consequential ? "I looked at this" : "Looks right"}
         </Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={() => setEditing((v) => !v)}>Correct</Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={() => onDone(() => rejectEvidence(claim.id, actor, "not accurate"))}>
@@ -213,7 +222,7 @@ export default function Inbox() {
     setBusy(false);
   }
 
-  if (!data) return <p className="muted">Loading captured evidence…</p>;
+  if (!data) return <p className="muted">Loading readings…</p>;
 
   const open = data.claims.filter((c) => c.status === "unverified");
   const closed = data.claims.filter((c) => c.status !== "unverified");
@@ -224,21 +233,21 @@ export default function Inbox() {
 
       <div className="kpi-grid kpi-4">
         <div className={`kpi ${data.consequential ? "alert" : ""}`}>
-          <b>{data.consequential}</b><span>Unverified and consequential</span>
-        </div>
-        <div className="kpi"><b>{data.unverified}</b><span>Awaiting a person</span></div>
-        <div className="kpi"><b>{data.batchable}</b><span>Safe to confirm together</span></div>
-        <div className="kpi"><b>{agent ? agent.silent : "—"}</b><span>Beds the agent is leaving alone</span></div>
+            <b>{data.consequential}</b><span>Abnormal — still needs a look</span>
+          </div>
+          <div className="kpi"><b>{data.unverified}</b><span>Needs a look</span></div>
+          <div className="kpi"><b>{data.batchable}</b><span>Normal, OK to batch</span></div>
+          <div className="kpi"><b>{agent ? agent.silent : "—"}</b><span>Beds that look fine</span></div>
       </div>
 
       <CaptureRound onDone={load} />
 
       <Card>
-        <p className="kicker">Exceptions and spoken captures</p>
-        <h2 style={{ margin: "0 0 6px", fontSize: 22 }}>Only what a person still has to look at</h2>
+        <p className="kicker">Flags and spoken vitals</p>
+        <h2 style={{ margin: "0 0 6px", fontSize: 22 }}>Only what still needs a look</h2>
         <p className="small muted" style={{ margin: "0 0 12px" }}>
-          Confirming one records that a person checked the source. It does not place an order or change treatment.
-          Stable monitor values never appear here.
+          Confirming just means you looked. It doesn&apos;t place an order or change treatment.
+          Beds that look fine don&apos;t show up here.
         </p>
         {data.batchable > 0 && (
           <Button
@@ -251,7 +260,7 @@ export default function Inbox() {
       </Card>
 
       {open.length === 0 && (
-        <Empty title="No exceptions" body="The agent is watching. Quiet beds do not create work." />
+        <Empty title="Nothing to check" body="The beds that look fine don't show up here." />
       )}
 
       {open.map((claim) => (

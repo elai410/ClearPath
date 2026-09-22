@@ -6,7 +6,7 @@ import { Badge, Button, Card, Empty } from "../components/ui.jsx";
  * Grouped by the team that owns the work, not by patient. A department can open
  * one card and see everything the hospital is waiting on them for.
  */
-export default function Handoffs({ onOpenPatient, data: injected, owners, onChanged }) {
+export default function Handoffs({ onOpenPatient, data: injected, owners, onChanged, hideKpis }) {
   const [local, setLocal] = useState(null);
   const [busy, setBusy] = useState(null);
 
@@ -53,26 +53,28 @@ export default function Handoffs({ onOpenPatient, data: injected, owners, onChan
     };
   }, [raw, owners]);
 
-  if (!data) return <p className="muted">Loading open handoffs…</p>;
+  if (!data) return <p className="muted">Loading handoffs…</p>;
 
   if (data.total === 0) {
     return (
       <Empty
-        title="Nothing overdue"
-        body="Every dependency is inside its expected window. Overdue work lands here automatically with the owning team attached."
+        title="Nothing's running late"
+        body="When something sits too long, it shows up here under the team who owns it."
       />
     );
   }
 
   return (
     <div>
-      <div className="kpi-grid">
-        <div className={`kpi ${data.unacknowledged ? "alert" : ""}`}>
-          <b>{data.unacknowledged}</b><span>Unacknowledged</span>
+      {!hideKpis && (
+        <div className="kpi-grid">
+          <div className={`kpi ${data.unacknowledged ? "alert" : ""}`}>
+            <b>{data.unacknowledged}</b><span>Nobody&apos;s picked these up</span>
+          </div>
+          <div className="kpi"><b>{data.total}</b><span>Running late</span></div>
+          <div className="kpi"><b>{data.groups.length}</b><span>Teams</span></div>
         </div>
-        <div className="kpi"><b>{data.total}</b><span>Open escalations</span></div>
-        <div className="kpi"><b>{data.groups.length}</b><span>Teams involved</span></div>
-      </div>
+      )}
 
       {data.groups.map((group) => (
         <Card key={group.owner} className="handoff-group">
@@ -137,8 +139,7 @@ export default function Handoffs({ onOpenPatient, data: injected, owners, onChan
       ))}
 
       <p className="small muted" style={{ marginTop: 12 }}>
-        Escalations are raised automatically when a dependency runs past its expected window.
-        High-urgency patients escalate sooner.{" "}
+        We flag work that sits longer than it should. Sicker patients get flagged sooner.{" "}
         <button className="linkish" type="button" onClick={() => act("sweep", sweepEscalations)}>
           Check now
         </button>

@@ -103,10 +103,10 @@ export function speculationDecisions(steps, { aversion = DEFAULT_AVERSION, load 
         expectedWaste: Math.round(expectedWaste),
         recommend,
         rationale: recommend
-          ? `${Math.round(step.probability * 100)}% likely, and starting now takes ${saving} min off the critical path. Expected gain ${Math.round(expectedSaving)} min against ${Math.round(expectedWaste)} min of possibly-wasted ${RESOURCES[step.resource]?.label || step.resource} time.`
+          ? `${Math.round(step.probability * 100)}% likely, and starting now takes ${saving} min off the wait. Expected gain ${Math.round(expectedSaving)} min against ${Math.round(expectedWaste)} min of possibly-wasted ${RESOURCES[step.resource]?.label || step.resource} time.`
           : saving === 0
-            ? `Off the critical path — starting early would save nothing, so don't spend the ${RESOURCES[step.resource]?.label || step.resource} time.`
-            : `Only ${Math.round(step.probability * 100)}% likely and the expected ${Math.round(expectedSaving)} min saved does not clear ${Math.round(expectedWaste)} min of expected waste.`,
+            ? `This isn't holding anyone up — starting early wouldn't save time, so don't spend the ${RESOURCES[step.resource]?.label || step.resource} time.`
+            : `Only ${Math.round(step.probability * 100)}% likely, and the ${Math.round(expectedSaving)} min you'd save doesn't beat ${Math.round(expectedWaste)} min of likely wasted time.`,
       };
     })
     .sort((a, b) => b.expectedSaving - a.expectedSaving);

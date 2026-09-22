@@ -82,7 +82,7 @@ export function patientPlan(patient, blockers = [], { load = {} } = {}) {
     clockBound: clockBound.length > 0 && {
       label: clockBound[0].label,
       minutes: Math.round(median(clockBound[0].duration)),
-      guidance: "Gated by a fixed interval, not by a queue. Expediting buys nothing — clear everything else so the clock is the only thing left.",
+      guidance: "This is a required waiting period, not a line. Other tests won't make it go faster.",
     },
     runningCount: running.length,
     startableNow: startableNow.map((s) => ({

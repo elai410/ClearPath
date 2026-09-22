@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import DoctorView from "./staff/DoctorView.jsx";
 import NurseView from "./staff/NurseView.jsx";
 import ManagerView from "./staff/ManagerView.jsx";
+import { FindPerson } from "./staff/WorkRow.jsx";
 import { fetchAgent, fetchEscalations, fetchEvidence, fetchFloorPlan, fetchFlow, WS_URL } from "./api/backend.js";
 import { Icon } from "./components/Icons.jsx";
 
 const ROLES = [
-  { id: "doctor", label: "Doctors", icon: "people", hint: "Who to see, what to sign, what not to treat as fact" },
-  { id: "nurse", label: "Nurses", icon: "check", hint: "Beds, exceptions, the next thing in front of you" },
-  { id: "manager", label: "Management", icon: "chart", hint: "The floor as one decision" },
+  { id: "doctor", label: "Doctors", icon: "people", hint: "Who to see, what to sign, what still needs a look" },
+  { id: "nurse", label: "Nurses", icon: "check", hint: "Your work, then the monitors" },
+  { id: "manager", label: "Management", icon: "chart", hint: "What to do, what's backing up" },
 ];
 
 function readRole() {
@@ -69,7 +70,7 @@ export default function Dashboard() {
     <div className="staff-app">
       <aside className="staff-nav">
         <h1 className="brand">ClearPath</h1>
-        <div className="nav-sub">Who are you right now?</div>
+        <div className="nav-sub">Your role</div>
         {ROLES.map((r) => (
           <button
             key={r.id}
@@ -98,6 +99,9 @@ export default function Dashboard() {
             <h2 className="page-title">{current.label}</h2>
             <p className="page-sub">{current.hint}</p>
           </div>
+          {role !== "doctor" && (
+            <FindPerson patients={flow?.patients || []} onRefresh={load} variant="bar" />
+          )}
         </div>
 
         {role === "doctor" && (

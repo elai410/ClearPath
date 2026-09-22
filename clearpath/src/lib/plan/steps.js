@@ -79,12 +79,12 @@ function specimen(prefix, label, goal, { after = [], analysisP50 = 40, analysisP
     step(`${prefix}-draw`, `${label}: draw`, {
       goal, requires: after, resource: "phlebotomy", presence: "required",
       p50: drawP50, p90: drawP50 * 3,
-      why: "The only part of this test that needs the patient.",
+      why: "They need to be here for the draw.",
     }),
     step(`${prefix}-run`, `${label}: analysis`, {
       goal, requires: [`${prefix}-draw`], resource: "lab", presence: "none",
       p50: analysisP50, p90: analysisP90,
-      why: "Runs in the lab. The patient is free this entire time.",
+      why: "This runs in the lab. They don't need to wait in the room.",
     }),
     step(`${prefix}-read`, `${label}: review`, {
       goal, requires: [`${prefix}-run`], resource: "attending", presence: "none",
@@ -100,12 +100,12 @@ function imaging(prefix, label, goal, resource, { after = [], acquireP50 = 15, a
     step(`${prefix}-acquire`, `${label}: scan`, {
       goal, requires: after, resource, presence: "required",
       p50: acquireP50, p90: acquireP90,
-      why: "Patient must be at the scanner.",
+      why: "They have to be at the scanner.",
     }),
     step(`${prefix}-read`, `${label}: read`, {
       goal, requires: [`${prefix}-acquire`], resource: "radiologist", presence: "none",
       p50: readP50, p90: readP90,
-      why: "Radiology read. The patient can be doing something else.",
+      why: "Radiology reads this. They don't need to stay in the department.",
     }),
   ];
 }
@@ -128,7 +128,7 @@ function universalSteps() {
     step("register", "Registration", {
       goal: "access", requires: ["arrive"], resource: "registration", presence: "brief",
       p50: 7, p90: 20,
-      why: "Does not need to block clinical care, and usually does.",
+      why: "This can run in the background while care continues.",
     }),
     step("provider-eval", "Provider evaluation", {
       goal: "diagnosis", requires: ["triage"], resource: "attending", presence: "required",
@@ -143,13 +143,13 @@ function universalSteps() {
     step("ride-home", "Arrange ride home", {
       goal: "departure", resource: "external", presence: "none",
       p50: 45, p90: 120, gatesDischarge: true,
-      why: "45 minutes of someone else's driving. Knowable at minute zero, usually asked for at the last minute.",
+      why: "Rides take about 45 minutes. Ask at the start of the visit, not at the end.",
     }),
     step("prescriptions", "Discharge medications", {
       goal: "departure", requires: ["dispo-decision"], resource: "pharmacy", presence: "none",
       p50: 25, p90: 70, gatesDischarge: true,
     }),
-    step("instructions", "Going-home instructions", {
+    step("instructions", "Discharge instructions", {
       goal: "departure", requires: ["dispo-decision"], resource: "nurse", presence: "brief",
       p50: 12, p90: 30, gatesDischarge: true,
     }),
@@ -181,19 +181,19 @@ export const BUNDLES = {
       step("ecg", "ECG", {
         goal: "acs", requires: ["triage"], resource: "ecg", presence: "required",
         p50: 7, p90: 15,
-        why: "Mobile: the machine comes to the patient, so no transport step.",
+        why: "The machine comes to the bedside, so no transport.",
       }),
       ...specimen("trop1", "Troponin (first)", "acs", { after: ["iv"], analysisP50: 40, analysisP90: 90 }),
       step("trop-interval", "Mandatory 3-hour interval", {
         goal: "acs", requires: ["trop1-read"], presence: "none",
         fixed: 180, clock: true,
-        why: "Cardiac biology, not a queue. No amount of expediting moves this.",
+        why: "This is a required wait. Calling them sooner won't shorten it.",
       }),
       ...specimen("trop2", "Troponin (second)", "acs", { after: ["trop-interval"], analysisP50: 40, analysisP90: 90 }),
       step("cards-consult", "Cardiology consult", {
         goal: "acs", requires: ["trop1-read"], resource: "cardiology", presence: "brief",
         p50: 40, p90: 120, probability: 0.45,
-        why: "Speculative: needed in under half of these, but pre-notifying costs almost nothing.",
+        why: "Needed in under half of these visits. Giving cardiology a heads-up costs almost nothing.",
       }),
     ],
     edges: [["trop2-read", "dispo-decision"], ["ecg", "provider-eval"]],

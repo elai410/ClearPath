@@ -291,7 +291,7 @@ function latentBottlenecks(planned) {
         peak,
         capacity: cap,
         atMinute: peakAt,
-        detail: `${meta?.label || resource} is handling ${nowLoad} now and will have ${peak} in progress or waiting by minute ${peakAt}, against ${cap} ${cap === 1 ? "server" : "servers"}. That work has not reached the queue yet.`,
+        detail: `${meta?.label || resource} is handling ${nowLoad} now and will have ${peak} in progress or waiting in about ${peakAt} minutes, against ${cap} ${cap === 1 ? "person" : "people"}. That work hasn't reached the line yet.`,
       });
     }
   }
@@ -322,8 +322,8 @@ function opportunities(planned) {
         kind: "interval",
         title: `Use ${jobs[0].patientName}'s ${clock.minutes}m wait`,
         detail: speculative.length
-          ? `${speculative.map((j) => j.label).join(", ")} can happen during the ${clock.label.toLowerCase()} if it is actually ordered. It adds nothing to the stay, and it should not be started on speculation alone.`
-          : `${inside.map((j) => j.label).join(", ")} fit inside the ${clock.label.toLowerCase()} and add nothing to the stay.`,
+          ? `${speculative.map((j) => j.label).join(", ")} can happen during the ${clock.label.toLowerCase()} if it's actually ordered. It doesn't add time to the stay — and it shouldn't be started just in case.`
+          : `${inside.map((j) => j.label).join(", ")} fit inside the ${clock.label.toLowerCase()} and don't add time to the stay.`,
       });
     }
   }

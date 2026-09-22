@@ -21,14 +21,14 @@ export const KINDS = ["observation", "intent", "inference", "prediction", "recom
  */
 export const EPISTEMIC = {
   OBSERVED: { label: "Observed", tone: "fact" },
-  AI_EXTRACTED: { label: "Captured · not verified", tone: "candidate" },
-  AI_INFERRED: { label: "Inferred", tone: "candidate" },
-  PREDICTED: { label: "Predicted", tone: "prediction" },
-  HUMAN_REPORTED: { label: "Reported by a person", tone: "candidate" },
-  HUMAN_VERIFIED: { label: "Verified", tone: "fact" },
+  AI_EXTRACTED: { label: "Needs a look", tone: "candidate" },
+  AI_INFERRED: { label: "Guess — needs a look", tone: "candidate" },
+  PREDICTED: { label: "Forecast", tone: "prediction" },
+  HUMAN_REPORTED: { label: "Someone reported this", tone: "candidate" },
+  HUMAN_VERIFIED: { label: "Checked", tone: "fact" },
   SYSTEM_CONFIRMED: { label: "Confirmed", tone: "fact" },
   DISPUTED: { label: "Disputed", tone: "dispute" },
-  SUPERSEDED: { label: "Superseded", tone: "past" },
+  SUPERSEDED: { label: "Replaced", tone: "past" },
 };
 
 export function initialEpistemic(kind) {
@@ -83,43 +83,43 @@ export function gate(claim) {
     return { level: 0, name: "observe", surface: false, execute: false, prepare: false, reason: "Nothing to act on." };
   }
   if (claim.status === "rejected") {
-    return { level: 0, name: "observe", surface: true, execute: false, prepare: false, reason: "Rejected. Kept so the rejection stays auditable." };
+    return { level: 0, name: "observe", surface: true, execute: false, prepare: false, reason: "Someone already said this was wrong. We're keeping the record." };
   }
   if (claim.clinical || claim.kind === "order") {
     return {
       level: 5, name: "clinical", surface: true, execute: false, prepare: false,
-      reason: "Diagnosis, treatment, and orders stay with a qualified professional.",
+      reason: "Orders and treatment stay with a clinician.",
     };
   }
   if (claim.kind === "observation" && claim.status !== "verified" && claim.status !== "corrected") {
     return {
       level: 0, name: "observe", surface: true, execute: false, prepare: false,
       reason: claim.consequential
-        ? "Captured and not yet verified. It can be surfaced. It cannot be treated as a fact or used to change care."
-        : "Captured and not yet verified. Safe to show. Not safe to act on.",
+        ? "Odd number — look at the monitor before you act on it."
+        : "Looks fine, but nobody's signed off yet.",
     };
   }
   if (claim.kind === "intent") {
     return {
       level: 1, name: "recommend", surface: true, execute: false, prepare: false,
-      reason: "An intention is not an order and not something that has happened.",
+      reason: "That's what they asked for — not an order yet.",
     };
   }
   if (claim.kind === "prediction" || claim.kind === "inference") {
     return {
       level: 1, name: "recommend", surface: true, execute: false, prepare: false,
-      reason: "A prediction is not a fact. It can inform a person. It cannot commit the hospital.",
+      reason: "This is a forecast, not something that already happened.",
     };
   }
   if (claim.reversible && (claim.kind === "recommendation" || claim.kind === "preparation")) {
     return {
       level: 2, name: "prepare", surface: true, execute: false, prepare: true,
-      reason: "Reversible preparation only. It can be staged and it can be thrown away. It does not commit care.",
+      reason: "This just queues the work. It doesn't order anything.",
     };
   }
   return {
     level: 1, name: "recommend", surface: true, execute: false, prepare: false,
-    reason: "A recommendation waits for a person.",
+    reason: "This still needs a person.",
   };
 }
 
@@ -127,7 +127,7 @@ export function gate(claim) {
 export function mayExecute(claim, requestedLevel = 3) {
   const decision = gate(claim);
   if (claim?.clinical || requestedLevel >= 5) {
-    return { allowed: false, ...decision, reason: "Clinical authority stays with a qualified professional." };
+    return { allowed: false, ...decision, reason: "A clinician has to do this." };
   }
   if (decision.execute) return { allowed: true, ...decision };
   if (requestedLevel <= 2 && decision.prepare && claim?.reversible) {
@@ -281,7 +281,7 @@ export function planAuthority() {
     name: "recommend",
     execute: false,
     prepare: false,
-    reason: "This is a recommendation about ordering work. It does not move a patient, place an order, or change treatment.",
+    reason: "This is a suggested order of work. It doesn't move anyone or place an order.",
     epistemic: "PREDICTED",
   };
 }

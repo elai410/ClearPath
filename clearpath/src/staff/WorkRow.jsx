@@ -51,10 +51,37 @@ export default function WorkRow({
   );
 }
 
-export function Section({ kicker, title, children, empty }) {
+export function PageMap({ items }) {
+  return (
+    <nav className="page-map" aria-label="On this page">
+      <p className="page-map-label">On this page</p>
+      <ol>
+        {items.map((item) => (
+          <li key={item.id}>
+            <a href={`#${item.id}`}>{item.label}</a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+export function Fold({ id, title, hint, children, open }) {
+  return (
+    <details className="fold" id={id} open={open}>
+      <summary>
+        <span>{title}</span>
+        {hint && <span className="fold-hint">{hint}</span>}
+      </summary>
+      <div className="fold-body">{children}</div>
+    </details>
+  );
+}
+
+export function Section({ id, kicker, title, children, empty }) {
   const content = Children.toArray(children).filter(Boolean);
   return (
-    <section className="role-section">
+    <section className="role-section" id={id}>
       {kicker && <p className="kicker">{kicker}</p>}
       {title && <h2 className="role-h">{title}</h2>}
       {content.length ? <div className="work-list">{content}</div> : (
@@ -65,7 +92,7 @@ export function Section({ kicker, title, children, empty }) {
 }
 
 /** Search, not a roster. Names are how you find work, not the work. */
-export function FindPerson({ patients, onRefresh }) {
+export function FindPerson({ patients, onRefresh, variant = "details" }) {
   const [q, setQ] = useState("");
   const [record, setRecord] = useState(null);
   const hits = useMemo(() => {
@@ -76,27 +103,44 @@ export function FindPerson({ patients, onRefresh }) {
     ).slice(0, 8);
   }, [q, patients]);
 
-  return (
+  const field = (
     <>
-      <details className="role-rest">
-        <summary>Find a person</summary>
-        <div className="stack" style={{ gap: 8, marginTop: 10 }}>
-          <input
-            className="field"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Name, situation, or room"
-            aria-label="Find a person"
-          />
+      <input
+        className="field"
+        id={variant === "bar" ? "patient-lookup" : undefined}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Name, room, or what's going on"
+        aria-label="Look up a patient"
+        autoComplete="off"
+      />
+      {hits.length > 0 && (
+        <div className={variant === "bar" ? "lookup-hits" : "stack"} style={variant === "bar" ? undefined : { gap: 8, marginTop: 8 }}>
           {hits.map((p) => (
-            <button key={p.id} type="button" className="work-copy" onClick={() => setRecord(p)} style={{ padding: "8px 0" }}>
+            <button key={p.id} type="button" className="work-copy" onClick={() => { setRecord(p); setQ(""); }} style={{ padding: "8px 0" }}>
               <span className="work-title">{p.name}</span>
               <span className="small muted">{p.now?.waitingFor || p.action?.label}</span>
             </button>
           ))}
-          {q.trim().length >= 2 && !hits.length && <p className="small muted">No match.</p>}
         </div>
-      </details>
+      )}
+      {q.trim().length >= 2 && !hits.length && <p className="small muted" style={{ margin: "8px 0 0" }}>No match.</p>}
+    </>
+  );
+
+  return (
+    <>
+      {variant === "bar" ? (
+        <div className="lookup-bar" id="lookup">
+          <label className="lookup-label" htmlFor="patient-lookup">Look up a patient</label>
+          {field}
+        </div>
+      ) : (
+        <details className="role-rest" id="lookup">
+          <summary>Look up a patient</summary>
+          <div className="stack" style={{ gap: 8, marginTop: 10 }}>{field}</div>
+        </details>
+      )}
       {record && (
         <Modal title={record.name} onClose={() => setRecord(null)}>
           <PatientCard patient={record} onRefresh={onRefresh} />

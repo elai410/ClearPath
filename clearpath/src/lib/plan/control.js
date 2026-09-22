@@ -67,7 +67,7 @@ export function generateInterventions(entries) {
       found.push({
         id: key,
         type: "START_EARLY",
-        title: `Start ${step.label.toLowerCase()} for ${patient.name}`,
+        title: `${step.label} for ${patient.name}`,
         reason: `${step.label} needs nobody at the bedside and is already eligible. Starting it now is prefetch, not a clinical decision.`,
         patientId: patient.id,
         patientName: patient.name,
@@ -116,8 +116,8 @@ export function controlLoop(patients, blockersByPatient = {}, { holds = [] } = {
     candidates.push({
       id: "reorder",
       type: "REORDER",
-      title: "Stop running queues in arrival order",
-      reason: `Same staff, same work. Least-slack-first recovers ${baseline.savedMinutes} minutes of weighted delay. That is not a staffing request.`,
+      title: "See people by who has the least time to spare, not who arrived first",
+      reason: `Same people, same work. That order saves about ${baseline.savedMinutes} minutes. This isn't a request for more staff.`,
       patientId: null,
       patientName: null,
       predictedDelay: baseline.plannedDelay,
@@ -143,8 +143,8 @@ export function controlLoop(patients, blockersByPatient = {}, { holds = [] } = {
       candidates.push({
         id: `start:${patient.id}:${step.id}`,
         type: "START_CRITICAL",
-        title: `Start ${step.label.toLowerCase()} for ${patient.name}`,
-        reason: step.why || `${step.label} is on the critical path and needs nobody at the bedside. The visit is waiting on work nobody has started.`,
+        title: `${step.label} for ${patient.name}`,
+        reason: step.why || `${step.label} is holding up the visit and doesn't need them in the room. Nobody's started it.`,
         patientId: patient.id,
         patientName: patient.name,
         predictedDelay: baseline.plannedDelay,
@@ -182,7 +182,7 @@ export function controlLoop(patients, blockersByPatient = {}, { holds = [] } = {
       level: 2,
       name: "prepare",
       execute: false,
-      reason: "ClearPath may stage reversible operational work. It may not place an order, discharge a patient, or change treatment.",
+      reason: "This queues work. It doesn't place an order or change anyone's treatment.",
     },
   };
 }

@@ -13,7 +13,7 @@ export const STAGES = [
   { id: "results",        label: "Results",         patient: "Waiting for results",        staff: "Results" },
   { id: "treatment",      label: "Treatment",       patient: "Receiving care",             staff: "Treatment" },
   { id: "observation",    label: "Observation",     patient: "Being monitored",            staff: "Observation" },
-  { id: "discharge_prep", label: "Going-home prep", patient: "Getting ready to go home",   staff: "Discharge prep" },
+  { id: "discharge_prep", label: "Discharge paperwork", patient: "Getting ready to go home",   staff: "Discharge paperwork" },
   { id: "discharge",      label: "Discharge",       patient: "You're going home",          staff: "Discharged" },
   { id: "followup",       label: "Follow-up",       patient: "After your visit",           staff: "Follow-up" },
 ];
@@ -198,7 +198,7 @@ export function parallelOpportunities(patient, blockers = []) {
       ideas.push({
         id: "start-discharge",
         title: "Start discharge paperwork now",
-        detail: "Going-home prep can happen while care continues. Starting it now usually saves 15–25 minutes at the end.",
+        detail: "Discharge paperwork can start while care continues. Starting it now usually saves 15–25 minutes at the end.",
       });
     }
     if (!types.has("pharmacy") && (patient.urgency === "medium" || patient.urgency === "high")) {
@@ -379,7 +379,7 @@ export function recommendedAction(patient, blockers = []) {
     return {
       id: "advance",
       kind: "advance",
-      label: "Advance — dependencies are clear",
+      label: "They're ready — update the status",
       reason: "Nothing is actually pending. This patient is blocked only because the status was not updated.",
       priority: 2,
     };
@@ -389,7 +389,7 @@ export function recommendedAction(patient, blockers = []) {
     return {
       id: "prep-discharge",
       kind: "prepare-discharge",
-      label: "Start going-home prep in parallel",
+      label: "Start discharge paperwork now",
       reason: "Care is underway. Paperwork and pharmacy can start now instead of after the last clinical step.",
       priority: 3,
     };
@@ -410,7 +410,7 @@ export function recommendedAction(patient, blockers = []) {
       id: "finish-discharge",
       kind: "discharge",
       label: "Complete discharge",
-      reason: "Patient is in going-home prep. Confirm instructions and release them.",
+      reason: "They're getting ready to go home. Confirm instructions and let them leave.",
       priority: 2,
     };
   }
@@ -596,7 +596,7 @@ export function computeFlow(patients, blockersByPatient = {}, deptNames = {}) {
         count: list.length,
         action: overdue.length
           ? `Escalate ${overdue.length} overdue ${meta?.label.toLowerCase() || type} request${overdue.length === 1 ? "" : "s"}.`
-          : `Start the next ${meta?.label.toLowerCase() || type} now so this queue does not grow.`,
+          : `Start the next ${meta?.label.toLowerCase() || type} now so this line doesn't grow.`,
         type,
       });
     }
@@ -654,15 +654,15 @@ export function computeFlow(patients, blockersByPatient = {}, deptNames = {}) {
     predictions.push({
       id: "diagnostics",
       confidence: "likely",
-      title: "Diagnostics will become the hospital-wide bottleneck",
-      detail: "Several visits are paused on labs or imaging. Downstream discharge and bed assignment will stall until results move.",
+      title: "Labs and imaging are going to slow everyone down",
+      detail: "Several visits are paused on labs or imaging. Discharge and beds will stall until those results move.",
     });
   }
   if (dischargeReady.length >= 2) {
     predictions.push({
       id: "discharge-cluster",
       confidence: "expected",
-      title: "A cluster of discharges can free capacity",
+      title: "A cluster of discharges can free up rooms",
       detail: `${dischargeReady.length} patients are close to leaving. Clearing pharmacy and signatures now is the fastest way to open rooms.`,
     });
   }
@@ -671,7 +671,7 @@ export function computeFlow(patients, blockersByPatient = {}, deptNames = {}) {
       id: "afternoon-surge",
       confidence: "seasonal",
       title: "Afternoon crowding window",
-      detail: "This time of day usually stacks ED arrivals with delayed morning tests. Pull discharge-ready patients first.",
+      detail: "This time of day usually stacks ED arrivals with delayed morning tests. Pull people who are ready to go home first.",
     });
   }
 

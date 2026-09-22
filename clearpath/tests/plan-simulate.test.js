@@ -70,7 +70,7 @@ test("the twin reports a latent CT jam from real plans", () => {
   assert.ok(ct, `expected a latent CT jam, got ${JSON.stringify(trajectory.latent)}`);
   assert.equal(ct.depthNow <= ct.capacity, true);
   assert.ok(ct.peak > ct.capacity);
-  assert.match(ct.detail, /not reached the queue yet/);
+  assert.match(ct.detail, /hasn't reached the line yet/);
 });
 
 test("following the plan costs less delay than arrival order, on the same work", () => {

@@ -84,7 +84,7 @@ export const DEFAULT_UI = {
   label_wait: "Estimated wait",
   label_directions: "Walking directions",
   label_qr: "Your check-in code",
-  label_discharge: "Going-home instructions",
+  label_discharge: "Instructions for going home",
   label_followup_card: "Your 3-day follow-up",
   label_name: "Your name",
   label_phone: "Phone for alerts (optional)",

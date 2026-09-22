@@ -1,54 +1,66 @@
-**ClearPath** - an AI-powered patient journey system
+# ClearPath
 
-It guides people from '*I need help*' to '*I'm walking out the door*' — in any language 
-- Real-time WebSocket architecture — two screens talking to each other live
-- Claude AI doing natural language triage in any language
-- Full SQLite database tracking every patient
-- End-to-end system: patient app + hospital OS in one
+A hospital operating system. Not a census, and not a chatbot.
 
-Hospitals are terrifying. You don't speak the language, you don't know where to go, you don't know how long you'll wait. Every other system gives you a form. ClearPath gives you a conversation. 
+ClearPath treats a visit as a **dependency graph with slack in it**, and treats every reading, intent, and guess as a **claim with provenance** — never as an order. Staff do not stare at a roster of names. They work a map of unfinished commitments: interpreters, sign-offs, overdue labs, a bed that looks fine, a reading that still needs a look. Patients see one thing: what they are actually waiting on, in a language they speak.
 
-**Description**
+Humans remain co-leaders. Clinical acts stay with a qualified person. The system may observe, recommend, and prepare. It does not pretend a model’s sentence is a fact.
 
-Patient App
-* Conversational AI triage — ClearPath asks follow-up questions like a real nurse before routing, in any language
-* Automatic language detection — no dropdowns, no selection, the entire UI adapts to whatever language the patient speaks
-* AI-generated personalized follow-up message at discharge
-* Interactive hospital map with animated walking directions and QR code check-in
-* Live queue position with real-time updates via WebSocket
-* Status-aware waiting screen — patients see exactly what's happening ("Your test is in progress", "Transport is on the way")
-* Instant alert pushed directly from staff
+The argument for what this has to become next — invert the object from patients to commitments, allocate attention not beds, optimize coupling across the building, close the visit outside the door — is in [HOSPITAL-OS-BEYOND.md](./HOSPITAL-OS-BEYOND.md).
 
-Staff Dashboard
-* Patient sentiment tracking — ClearPath flags emotional state during intake ("Patient is scared and traveling alone")
-* Stuck patient detection — automatically flags patients who have been in a status too long, sorted to the top
-* Full status system — waiting, in progress, pending test, pending signature, pending transport, pending bed
-* Status changes push instant notifications to the patient's phone
-* Call next patient, move between departments, discharge with custom instructions
-* AI-generated shift handoff summary — one click generates a clinical briefing for the incoming team
-* Search, filter by department, urgency badges, language badges
+## What it is now
 
-Analytics Page
-* Live patient volume by hour
-* Average wait time per department
-* Urgency breakdown across all patients
-* Languages spoken today
-* Total checked in, currently waiting, and discharged counts
+**Patient side.** Intake in English, Spanish, Chinese, Portuguese, Haitian Creole, Arabic, or Russian, including RTL. No language dropdown required. The journey answers “what is my going home waiting on,” not “what stage am I in.” Clock-bound waits (serial troponin, required intervals) are said plainly: freeing a scanner will not shorten them. Follow-up and discharge copy is ordinary hospital English, not agent-speak.
 
+**Staff side.** Three homes, same hospital, different maps. Role persists in the browser.
 
-# React + Vite
+| Role | What is first |
+| --- | --- |
+| Doctors | Holds (“don’t discharge yet”), timer-bound visits, consequential readings, sign-off and consults |
+| Nurses | Look up a patient, then **your work** (interpreters, transport, rooms), then monitors beside readings to check |
+| Management | Look up a patient, then the call (do this / what’s in the way), what’s backing up, overdue by team. Forecasts and volume live under “look closer” |
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Under those maps: worklists in planned order (tightest deadlines first, not arrival order), handoffs grouped by the team that owns the late work, a floor digital twin, a control loop that can stage a reversible move and will not execute a clinical one, analytics, and shift notes for the incoming team.
 
-Currently, two official plugins are available:
+**Evidence.** Captured vitals and spoken rounds become claims (`observation`, `intent`, `inference`, `prediction`, `recommendation`) with an epistemic state. Confirming a reading means someone looked. It does not place an order. Abnormal numbers cannot be batch-confirmed. Quiet beds stay off the queue.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Passive vitals agent.** Monitors already run. Only a change that matters surfaces for a person. The “check now” control is a demo jump, not the collection method.
 
-## React Compiler
+**Planner.** Presence time (needs the patient in the room) vs coordination time (the hospital’s own waiting around). A governing constraint that says whether the floor is short-staffed or waiting on steps that have not started. Speculation priced against live contention: the same pre-page is advised on a quiet floor and declined on a saturated one.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- **API** — Node, Express, SQLite (`better-sqlite3`, WAL). Default `PORT=3001`.
+- **UI** — React 19 + Vite. Default `http://localhost:5173`, proxy `/api` → `CLEARPATH_API` or `http://localhost:3001`.
+- **Live updates** — WebSockets. Staff poll as a fallback.
+- **Optional model** — Anthropic via `ai.js`. The OS stays useful with the model off (`USE_ANTHROPIC=false`): triage terms, i18n, plans, and evidence do not require a completion.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Run
+
+```bash
+cd clearpath
+npm install
+npm run seed          # sample patients, blockers, floor
+npm run server        # API on :3001
+npm run dev           # UI on :5173
+npm test
+```
+
+Point the UI at another API with `CLEARPATH_API`. Point the API at another database with `CLEARPATH_DB`. Patient view is `/`. Staff is `/dashboard`.
+
+## Layout
+
+```
+clearpath/
+  server.js, db.js, seed.js, ai.js
+  src/lib/plan/       visit DAG, slack, schedule, simulate, control
+  src/lib/evidence.js claims, epistemic states, autonomy 0–5
+  src/lib/agent/      passive vitals
+  src/lib/journey.js  stages, blockers, flow KPIs
+  src/staff/          Doctors / Nurses / Management
+  tests/
+```
+
+## What it is not
+
+A long list of patients is not the home. A generated paragraph is not a handoff. An unverified reading is not a fact. Staging a control move is not executing care. The discovery note is not a commitment to build those leaps in this repo — it is the map of the object we think hospitals actually are.

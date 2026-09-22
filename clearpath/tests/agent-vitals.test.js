@@ -125,8 +125,8 @@ test("unverified consequential vitals hold departure, they do not treat", () => 
     },
   ]);
   assert.equal(holds.length, 1);
-  assert.match(holds[0].title, /Hold departure/);
-  assert.match(holds[0].reason, /not a diagnosis/);
+  assert.match(holds[0].title, /Don't discharge/);
+  assert.match(holds[0].reason, /hasn't been checked/);
 });
 
 test("ambient listening reuses capture and does not invent a prompt", () => {

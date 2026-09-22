@@ -55,15 +55,15 @@ export default function Follow({ token }) {
       <NowCard journey={journey} />
       {data.operating?.blockedBy && (
         <Card>
-          <p className="kicker">What this visit is actually waiting on</p>
+          <p className="kicker">What they&apos;re waiting on</p>
           <h2 className="display" style={{ fontSize: 22 }}>{data.operating.blockedBy.label}</h2>
           {data.operating.blockedBy.clock ? (
-            <p className="lede">This wait is a required interval. Other tests will not shorten it.</p>
+            <p className="lede">This is a required wait. Other tests won&apos;t shorten it.</p>
           ) : (
-            <p className="lede">{data.operating.blockedBy.why || "The rest of the visit is waiting on this step."}</p>
+            <p className="lede">The rest of the visit is waiting on this step.</p>
           )}
           {data.operating.clockBound && !data.operating.blockedBy.clock && (
-            <p className="small muted">A required waiting period is still ahead. Speeding up other tests will not shorten the visit.</p>
+            <p className="small muted">A required waiting period is still ahead. Speeding up other tests won&apos;t shorten the visit.</p>
           )}
         </Card>
       )}
@@ -72,7 +72,7 @@ export default function Follow({ token }) {
         <h2 className="display" style={{ fontSize: 22 }}>{data.departmentMeta?.name}</h2>
         <p className="lede">{data.departmentMeta?.room} · Floor {data.departmentMeta?.floor}</p>
       </Card>
-      <p className="small muted">This page does not include medical details. It updates as the visit moves.</p>
+      <p className="small muted">This page doesn&apos;t include medical details. It updates as the visit moves.</p>
     </div>
   );
 }

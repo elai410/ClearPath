@@ -118,8 +118,8 @@ test("an unsaturated floor is diagnosed as structural, not as a staffing gap", (
   const c = governingConstraint(worklists(entries), 120);
   assert.equal(c.kind, "structural");
   assert.ok(c.utilisationPct < 80, `utilisation was ${c.utilisationPct}%`);
-  assert.match(c.subordinate, /Adding staff will not/);
-  assert.match(c.headline, /dependency structure/);
+  assert.match(c.subordinate, /Don't add staff/);
+  assert.match(c.headline, /waiting on steps/);
 });
 
 test("a busy resource nobody is waiting on is not the constraint", () => {
@@ -191,7 +191,7 @@ test("speculating off the critical path is refused, however likely", () => {
   assert.equal(decision.savingIfNeeded, 0);
   assert.equal(decision.recommend, false,
     "95% likely, but starting it early saves the patient nothing");
-  assert.match(decision.rationale, /Off the critical path/);
+  assert.match(decision.rationale, /isn't holding anyone up/);
 });
 
 test("an unlikely call on a scarce resource is refused even when it would help", () => {

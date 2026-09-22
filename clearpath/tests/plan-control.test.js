@@ -110,12 +110,12 @@ test("an unverified desat holds going-home work for that patient", () => {
       patientId: "p",
       patientName: "Priya Nair",
       display: "SpO2 89%",
-      title: "Hold departure for Priya Nair",
-      reason: "SpO2 89% is captured and not verified. Going-home work waits.",
+      title: "Don't discharge Priya Nair yet",
+      reason: "SpO2 89% hasn't been checked. Don't start discharge until someone looks.",
     }],
   });
   assert.equal(loop.recommended?.type, "HOLD");
-  assert.match(loop.recommended.title, /Hold departure/);
+  assert.match(loop.recommended.title, /discharge/);
   assert.equal(loop.recommended.authority.execute, false);
   const titles = (loop.alternatives || []).map((a) => a.title).join("; ");
   assert.equal(/ride home/i.test(titles), false, titles);

@@ -36,7 +36,7 @@ test("the plan is gated by the troponin interval, not by any queue", () => {
   const p = patientPlan(patient());
   assert.ok(p.clockBound, "a chest pain rule-out is clock-bound");
   assert.equal(p.clockBound.minutes, 180);
-  assert.match(p.clockBound.guidance, /Expediting buys nothing/);
+  assert.match(p.clockBound.guidance, /required waiting period/);
 });
 
 test("the forecast is a range with a committable upper bound", () => {

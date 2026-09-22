@@ -5,11 +5,18 @@ import {
 import { AgentFloor, CaptureRound, ClaimCard } from "./Inbox.jsx";
 import Handoffs from "./Handoffs.jsx";
 import { Worklist, PatientPlan } from "./Planner.jsx";
-import WorkRow, { FindPerson, Section } from "./WorkRow.jsx";
+import WorkRow, { PageMap, Section } from "./WorkRow.jsx";
 import { Button } from "../components/ui.jsx";
 
 const NURSE_OWNERS = /nurs|language|transport|admitt|interpreter|him/i;
 const NURSE_RES = /nurse|interpret|transport|registration/i;
+
+const MAP = [
+  { id: "nursing", label: "Your work" },
+  { id: "floor", label: "Monitors and readings" },
+  { id: "overdue", label: "Waiting on us" },
+  { id: "board", label: "Who's next" },
+];
 
 function nurseWork(patient) {
   const open = (patient.blockers || []).filter((b) => b.status !== "resolved");
@@ -54,6 +61,21 @@ function nurseWork(patient) {
   return null;
 }
 
+function leadLine(work, exceptions, agent) {
+  const nWork = work.length;
+  const nRead = exceptions.length;
+  const workBit = nWork
+    ? `${nWork} thing${nWork === 1 ? "" : "s"} in front of you`
+    : "Nothing in the work list";
+  const readBit = nRead
+    ? `${nRead} reading${nRead === 1 ? "" : "s"} still need a look`
+    : agent
+      ? `${agent.silent} bed${agent.silent === 1 ? "" : "s"} look fine`
+      : null;
+  if (readBit) return `${workBit}. ${readBit}.`;
+  return `${workBit}.`;
+}
+
 export default function NurseView({ flow, evidence, agent, escalations, floor, onRefresh }) {
   const [busy, setBusy] = useState(false);
   const [plan, setPlan] = useState(null);
@@ -83,47 +105,10 @@ export default function NurseView({ flow, evidence, agent, escalations, floor, o
 
   return (
     <div className="role-view">
-      <p className="role-lead">
-        {agent
-          ? `${agent.silent} beds are quiet. ${exceptions.length ? `${exceptions.length} reading${exceptions.length === 1 ? "" : "s"} need a person.` : "Silence is the product."}`
-          : "Loading the floor…"}
-      </p>
+      <PageMap items={MAP} />
+      <p className="role-lead">{agent || evidence ? leadLine(work, exceptions, agent) : "Loading the floor…"}</p>
 
-      <AgentFloor agent={agent} onTick={onRefresh} />
-
-      {evidence && (
-        <div className="kpi-grid kpi-4">
-          <div className={`kpi ${evidence.consequential ? "alert" : ""}`}>
-            <b>{evidence.consequential}</b><span>Unverified and consequential</span>
-          </div>
-          <div className="kpi"><b>{evidence.unverified}</b><span>Awaiting a person</span></div>
-          <div className="kpi"><b>{evidence.batchable}</b><span>Safe to confirm together</span></div>
-          <div className="kpi"><b>{agent ? agent.silent : "—"}</b><span>Beds the agent is leaving alone</span></div>
-        </div>
-      )}
-
-      <section className="role-section">
-        <p className="kicker">Exceptions</p>
-        <h2 className="role-h">Confirm what the agent already captured</h2>
-        <p className="small muted" style={{ margin: "0 0 10px" }}>
-          Confirming records that a person checked the source. It does not place an order.
-        </p>
-        {batchable.length > 1 && (
-          <div style={{ marginBottom: 10 }}>
-            <Button size="sm" disabled={busy} onClick={() => run(() => verifyEvidenceBatch(batchable.map((c) => c.id), "nurse"))}>
-              Confirm {batchable.length} ordinary readings
-            </Button>
-          </div>
-        )}
-        {exceptions.length === 0 && <p className="small muted">Quiet. Stable values are not work.</p>}
-        {exceptions.map((claim) => (
-          <ClaimCard key={claim.id} claim={claim} actor="nurse" busy={busy} onDone={run} />
-        ))}
-      </section>
-
-      <CaptureRound onDone={onRefresh} />
-
-      <Section kicker="Nursing-owned work" title="Interpreters, transport, rooms" empty="Nothing in front of a nurse right now.">
+      <Section id="nursing" kicker="Your work" title="Interpreters, transport, rooms" empty="Nothing in front of a nurse right now.">
         {work.map((row) => (
           <WorkRow
             key={row.id}
@@ -143,27 +128,51 @@ export default function NurseView({ flow, evidence, agent, escalations, floor, o
         ))}
       </Section>
 
-      {lists.length > 0 && (
-        <section className="role-section">
-          <p className="kicker">Planned order</p>
-          <h2 className="role-h">Nursing and transport queues</h2>
-          {lists.map((list) => (
-            <Worklist
-              key={list.resource}
-              list={list}
-              onOpenPatient={(id, name) => setPlan({ id, name })}
-            />
-          ))}
-        </section>
-      )}
-
-      <section className="role-section">
-        <p className="kicker">Waiting on this team</p>
-        <h2 className="role-h">Language, nursing, transport</h2>
-        <Handoffs data={escalations} owners={NURSE_OWNERS} onChanged={onRefresh} />
+      <section id="floor" className="role-section">
+        <div className="nurse-floor">
+          <div id="monitors">
+            <AgentFloor agent={agent} onTick={onRefresh} compact />
+          </div>
+          <div id="readings" className="readings-col">
+            <p className="kicker">Readings to check</p>
+            <h2 className="role-h">Needs a look</h2>
+            <p className="small muted" style={{ margin: "0 0 8px" }}>
+              Confirming just means you looked. It doesn&apos;t place an order.
+            </p>
+            {batchable.length > 1 && (
+              <div style={{ marginBottom: 8 }}>
+                <Button size="sm" disabled={busy} onClick={() => run(() => verifyEvidenceBatch(batchable.map((c) => c.id), "nurse"))}>
+                  Confirm {batchable.length} normal readings
+                </Button>
+              </div>
+            )}
+            {exceptions.length === 0 && <p className="small muted">Quiet. The numbers look fine.</p>}
+            {exceptions.map((claim) => (
+              <ClaimCard key={claim.id} claim={claim} actor="nurse" busy={busy} onDone={run} compact />
+            ))}
+            <CaptureRound onDone={onRefresh} />
+          </div>
+        </div>
       </section>
 
-      <FindPerson patients={patients} onRefresh={onRefresh} />
+      <section id="overdue" className="role-section">
+        <p className="kicker">Waiting on this team</p>
+        <h2 className="role-h">Language, nursing, transport</h2>
+        <Handoffs data={escalations} owners={NURSE_OWNERS} onChanged={onRefresh} hideKpis />
+      </section>
+
+      <section id="board" className="role-section">
+        <p className="kicker">Who&apos;s next</p>
+        <h2 className="role-h">Who should be seen first</h2>
+        {lists.length === 0 && <p className="small muted">No nursing or transport queues right now.</p>}
+        {lists.map((list) => (
+          <Worklist
+            key={list.resource}
+            list={list}
+            onOpenPatient={(id, name) => setPlan({ id, name })}
+          />
+        ))}
+      </section>
 
       {plan && (
         <PatientPlan patientId={plan.id} name={plan.name} onClose={() => setPlan(null)} />

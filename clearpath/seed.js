@@ -27,7 +27,7 @@ const people = [
   {
     name: "James Carter",
     situation: "Severe chest pain radiating to my left arm, started 20 minutes ago",
-    summary: "ACS rule-out. Troponin interval is the clock. Expediting a scanner cannot move it.",
+    summary: "Chest-pain rule-out. They're on a required 3-hour wait. Freeing a scanner won't shorten it.",
     department: "emergency",
     room: "South Pavilion",
     floor: "1",
@@ -53,7 +53,7 @@ const people = [
   {
     name: "David Kim",
     situation: "I was in a car accident, my head hurts and I'm dizzy",
-    summary: "Head CT is the rate limiter. Transport is already done. The read, not the scan, will hold discharge.",
+    summary: "Head CT is what's holding things up. Transport's done. The read, not the scan, is what delays going home.",
     department: "emergency",
     room: "South Pavilion",
     floor: "1",
@@ -75,7 +75,7 @@ const people = [
   {
     name: "Priya Nair",
     situation: "I think I'm ready to go home but nobody has brought the paperwork",
-    summary: "Clinically ready. Discharge started at the end of the visit instead of at arrival. Ride and pharmacy still unstarted.",
+    summary: "Ready clinically. Discharge paperwork started late. Ride and pharmacy still haven't been started.",
     department: "emergency",
     room: "South Pavilion",
     floor: "1",
@@ -98,7 +98,7 @@ const people = [
   {
     name: "Rosa Delgado",
     situation: "Mi hija tiene fiebre muy alta y convulsiones",
-    summary: "Child with fever and seizures. Interpreter requested at the door, still not at bedside. That delay is fully predictable from language at check-in.",
+    summary: "Child with fever and seizures. Interpreter was requested at the door and still isn't here. We knew the language at check-in.",
     department: "pediatric",
     room: "Children's Hospital",
     floor: "1",
@@ -120,7 +120,7 @@ const people = [
   {
     name: "Fatima Al-Hassan",
     situation: "أنا حامل في الشهر الثامن وأشعر بآلام في البطن",
-    summary: "Third trimester pain. Bed is the constraint, not the evaluation. Arabic, traveling without a partner.",
+    summary: "Third-trimester pain. The hold-up is a bed, not the exam. Arabic-speaking, traveling without a partner.",
     department: "pediatric",
     room: "Children's Hospital",
     floor: "4",
@@ -140,7 +140,7 @@ const people = [
   {
     name: "Maria Santos",
     situation: "Dog bite on my hand, the dog was a stray and I don't know if it was vaccinated",
-    summary: "Rabies prophylaxis. Pharmacy is preparing a weight-based dose that was knowable from the triage note.",
+    summary: "Rabies shots. Pharmacy is mixing a weight-based dose we could have called in from triage.",
     department: "rabies",
     room: "Room A3",
     floor: "1",
@@ -159,7 +159,7 @@ const people = [
   {
     name: "Michael Torres",
     situation: "bat flew into my house last night and scratched my arm while I was trying to get it out",
-    summary: "Same clinic, same pharmacy, same dose type as Maria Santos. Two visits, one prep if anyone notices.",
+    summary: "Same clinic, same pharmacy, same kind of dose as Maria Santos. Two visits, one prep if anyone notices.",
     department: "rabies",
     room: "Room A3",
     floor: "1",
@@ -175,7 +175,7 @@ const people = [
   {
     name: "Amara Okafor",
     situation: "I have been having severe abdominal pain for two days, no appetite",
-    summary: "CT abdomen is still reading. Surgical consult is 30% likely. Disposition waits on the read, not the consult.",
+    summary: "CT abdomen is still being read. Surgery is only needed about a third of the time. Next step waits on the read, not the consult.",
     department: "dana",
     room: "Dana Building",
     floor: "1",
@@ -198,7 +198,7 @@ const people = [
   {
     name: "Thomas Greene",
     situation: "I fell off a ladder and my wrist is swollen and painful, can't move it. I use a walker at home.",
-    summary: "Likely fracture. X-ray in progress. PT eval is the silent discharge blocker — three hours of lead time, usually requested at hour six.",
+    summary: "Likely fracture. X-ray in progress. PT is what's going to delay going home — it takes about three hours and usually gets requested at the end.",
     department: "ypb",
     room: "Yale Physicians",
     floor: "1",
@@ -217,7 +217,7 @@ const people = [
   {
     name: "Wei Zhang",
     situation: "我需要做MRI检查，医生已经开了单子",
-    summary: "MRI referral. Calm. Language is Mandarin. Interpreter not yet requested because nobody looked at the language field.",
+    summary: "MRI referral. Calm. Speaks Mandarin. Nobody requested an interpreter because nobody looked at the language field.",
     department: "clinicbldg",
     room: "Clinic Building",
     floor: "1",
@@ -233,7 +233,7 @@ const people = [
   {
     name: "Carlos Mendez",
     situation: "Necesito ver a un psiquiatra, he tenido pensamientos muy difíciles",
-    summary: "Psychiatric evaluation. Placement is the real bottleneck, and it has not started. Should not wait in a public queue.",
+    summary: "Psych evaluation. Placement is what's slow, and it hasn't started. Shouldn't wait in a public line.",
     department: "winchester",
     room: "Winchester Building",
     floor: "1",
@@ -253,7 +253,7 @@ const people = [
   {
     name: "Anna Kowalski",
     situation: "I have been feeling very sad and isolated for months, my family made me come",
-    summary: "In evaluation. Safety plan and placement can start before disposition is decided. They have not.",
+    summary: "In evaluation. Safety plan and placement can start before we decide next steps. They haven't.",
     department: "winchester",
     room: "Winchester Building",
     floor: "1",
@@ -272,7 +272,7 @@ const people = [
   {
     name: "Samuel Osei",
     situation: "Je dois faire une mammographie de routine",
-    summary: "Routine imaging. Waiting on transport between pavilions — a 15-minute job treated as a department.",
+    summary: "Routine imaging. Waiting on a 15-minute ride between buildings.",
     department: "north",
     room: "North Pavilion",
     floor: "1",
@@ -291,7 +291,7 @@ const people = [
   {
     name: "Helen Park",
     situation: "I've had blurry vision for a week and my optometrist said to come here",
-    summary: "Called. Room is ready. Nothing is actually pending except the walk.",
+    summary: "Called. Room is ready. Nothing's actually pending except the walk.",
     department: "dana",
     room: "Dana Building",
     floor: "2",
@@ -307,7 +307,7 @@ const people = [
   {
     name: "Linda Hoffman",
     situation: "I need a pulmonary function test, my doctor referred me. I get short of breath climbing stairs.",
-    summary: "Routine PFT. Short wait. ECG can run at the chair if anyone sends the machine.",
+    summary: "Routine breathing test. Short wait. ECG can be done in the chair if someone sends the machine.",
     department: "fitkin",
     room: "Fitkin Building",
     floor: "2",
@@ -323,7 +323,7 @@ const people = [
   {
     name: "Ibrahim Hassan",
     situation: "I need to get my pre-admission testing done before my surgery next week",
-    summary: "Pre-op. Labs can be drawn while registration finishes. They are waiting in sequence instead.",
+    summary: "Pre-op. Labs can be drawn while registration finishes. Right now they're waiting in a line instead.",
     department: "triage",
     room: "East Pavilion",
     floor: "1",

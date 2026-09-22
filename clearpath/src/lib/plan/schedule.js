@@ -116,13 +116,13 @@ function plannedOrder(items) {
 
 function reasonFor(item, position) {
   if (item.critical) {
-    return `On ${item.patientName}'s critical path — every minute here is a minute of their stay.`;
+    return `Can't wait — every minute here is a minute ${item.patientName} stays.`;
   }
-  if (item.slack <= 15) return `Only ${item.slack} min of float left before it starts pushing discharge.`;
+  if (item.slack <= 15) return `Only ${item.slack} min to spare before this starts delaying discharge.`;
   if ((URGENCY_CREDIT[item.urgency] ?? 0) > 0 && position < 3) {
-    return `${item.urgency} acuity, ${item.slack} min float — moved up on clinical priority.`;
+    return `${item.urgency} acuity, ${item.slack} min to spare — moved up because they're sicker.`;
   }
-  return `${item.slack} min of float. Safe to run after the items above.`;
+  return `${item.slack} min to spare. Fine to do after the items above.`;
 }
 
 /**
@@ -231,9 +231,9 @@ export function governingConstraint(lists, horizonMinutes = 120) {
     return {
       ...common,
       kind: "structural",
-      headline: "No resource is the bottleneck — the dependency structure is",
-      detail: `The busiest queue, ${top.label}, is only at ${Math.round(top.utilisation * 100)}% of capacity. ${waiting} critical task${waiting === 1 ? " sits" : "s sit"} in queues that are not full, so people are waiting on sequence and on work nobody has started, not on capacity.`,
-      subordinate: "Adding staff will not speed this floor up. The wins are reordering the queues below and starting the off-path work that is already startable.",
+      headline: "We're not short-staffed — people are waiting on steps that haven't started",
+      detail: `The busiest queue, ${top.label}, is only at ${Math.round(top.utilisation * 100)}% busy. ${waiting} task${waiting === 1 ? "" : "s"} that can't wait sit in queues that still have room, so people are waiting on the next step, not on capacity.`,
+      subordinate: "Don't add staff for this. Reorder the lists below, and start the work that's already ready.",
     };
   }
 
@@ -241,9 +241,9 @@ export function governingConstraint(lists, horizonMinutes = 120) {
     ...common,
     kind: "resource",
     headline: `${top.label} is setting the pace for the whole floor`,
-    detail: `${Math.round(top.demandMinutes)} min of queued work against ${top.capacityMinutes} min of capacity in the next ${Math.round(horizonMinutes / 60)}h, and ${top.criticalCount} critical task${top.criticalCount === 1 ? "" : "s"} sit in this queue.`,
+    detail: `${Math.round(top.demandMinutes)} min of queued work against ${top.capacityMinutes} min of capacity in the next ${Math.round(horizonMinutes / 60)}h, and ${top.criticalCount} task${top.criticalCount === 1 ? "" : "s"} that can't wait sit in this queue.`,
     subordinate: offPath.length
-      ? `Move the ${offPath.length} item${offPath.length === 1 ? "" : "s"} with float off ${top.label} or run them later. Protecting this queue is worth more than any other improvement on the floor right now.`
-      : `Every item queued here is on someone's critical path. Adding capacity here is the only thing that speeds the floor up; nothing else will.`,
+      ? `Move the ${offPath.length} item${offPath.length === 1 ? "" : "s"} that can wait off ${top.label}, or do them later. Protecting this queue matters more than anything else right now.`
+      : `Everything in this queue is holding someone up. Adding people here is the only thing that speeds the floor up.`,
   };
 }

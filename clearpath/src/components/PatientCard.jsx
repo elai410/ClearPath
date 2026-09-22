@@ -135,7 +135,7 @@ export default function PatientCard({ patient, onRefresh }) {
           <Button size="sm" variant="sage" onClick={() => run(() => advancePatient(patient.id))} disabled={busy}>Advance</Button>
         )}
         {patient.action?.kind === "prepare-discharge" && (
-          <Button size="sm" variant="soft" onClick={() => run(() => prepareDischarge(patient.id))} disabled={busy}>Start going-home prep</Button>
+          <Button size="sm" variant="soft" onClick={() => run(() => prepareDischarge(patient.id))} disabled={busy}>Start discharge paperwork</Button>
         )}
         {patient.action?.blockerId && (
           <>
@@ -143,7 +143,7 @@ export default function PatientCard({ patient, onRefresh }) {
             <Button size="sm" variant="sage" onClick={() => run(() => resolveBlocker(patient.action.blockerId))} disabled={busy}>Mark done</Button>
           </>
         )}
-        <Button size="sm" variant="ghost" onClick={handleBrief} disabled={busy}>AI brief</Button>
+        <Button size="sm" variant="ghost" onClick={handleBrief} disabled={busy}>Handoff note</Button>
         <Button size="sm" variant="ghost" onClick={() => setShowMove((v) => !v)}>Move</Button>
         <Button size="sm" variant="ghost" onClick={handleDraft} disabled={busy}>Discharge</Button>
       </div>
@@ -197,7 +197,7 @@ export default function PatientCard({ patient, onRefresh }) {
             rows={6}
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            placeholder="Going-home instructions the patient will see…"
+            placeholder="Discharge instructions the patient will see…"
           />
           <div className="row" style={{ marginTop: 12, justifyContent: "flex-end" }}>
             <Button variant="ghost" onClick={() => setShowDischarge(false)}>Cancel</Button>

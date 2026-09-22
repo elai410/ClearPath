@@ -243,8 +243,8 @@ export function vitalsHolds(claims = []) {
       patientName: claim.patientName || claim.patient_name || "This patient",
       display: claim.display,
       measure: claim.proposition?.measure,
-      title: `Hold departure for ${claim.patientName || claim.patient_name || "this patient"}`,
-      reason: `${claim.display} is captured and not verified. Going-home work waits. This is not a diagnosis and not a treatment.`,
+      title: `Don't discharge ${claim.patientName || claim.patient_name || "this patient"} yet`,
+      reason: `${claim.display} hasn't been checked. Don't start discharge until someone looks.`,
     });
   }
   return holds;

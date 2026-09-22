@@ -518,8 +518,8 @@ app.post("/api/prepare-discharge/:id", (req, res) => {
   if (!open.some((b) => b.type === "documentation")) {
     createBlocker(patient.id, {
       type: "documentation",
-      title: "Going-home paperwork",
-      detail: "Started in parallel with care so the patient is not waiting at the end.",
+      title: "Discharge paperwork",
+      detail: "Started while care continues so they aren't waiting on paperwork at the end.",
       owner_role: BLOCKER_TYPES.documentation.owner,
       eta_minutes: 15,
       can_parallel: 1,
@@ -535,7 +535,7 @@ app.post("/api/prepare-discharge/:id", (req, res) => {
       can_parallel: 1,
     });
   }
-  addEvent(req.params.id, "prep", "Going-home prep started in parallel");
+  addEvent(req.params.id, "prep", "Discharge paperwork started while care continues");
   notifyPatient(req.params.id, {
     type: "STATUS_UPDATE",
     status: patient.status,

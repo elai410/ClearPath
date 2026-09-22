@@ -75,15 +75,15 @@ export default {
 
   "stage.treatment.headline": "You're receiving care",
   "stage.treatment.why": "Treatment is underway. The team is watching how you respond.",
-  "stage.treatment.next": "Observation or going-home prep, depending on how things go.",
+  "stage.treatment.next": "We'll keep an eye on you, or start getting you ready to go home, depending on how things go.",
   "stage.treatment.youDo": "Tell someone immediately if you feel worse.",
   "stage.treatment.owner": "Your care team",
 
   "stage.observation.headline": "You're being monitored",
   "stage.observation.why": "The team wants to see that you stay stable before you go home or move rooms.",
-  "stage.observation.next": "Going-home prep, or a room if you need to stay longer.",
+  "stage.observation.next": "Getting ready for you to go home, or a room if you need to stay longer.",
   "stage.observation.youDo": "Rest. Use the call button if anything changes.",
-  "stage.observation.waitingFor": "A period of stable observation",
+  "stage.observation.waitingFor": "We're keeping an eye on you",
   "stage.observation.owner": "Nursing",
 
   "stage.discharge_prep.headline": "Getting you ready to go home",
@@ -101,7 +101,7 @@ export default {
   "stage.wayfinding.waitingFor": "Your arrival",
   "stage.wayfinding.waitingFor.transport": "Transport",
 
-  "stage.default.headline": "We're guiding you through this visit",
+  "stage.default.headline": "We're working on the next step",
   "stage.default.why": "Your care team is coordinating the next step.",
   "stage.default.next": "This page will update as things change.",
   "stage.default.youDo": "You don't need to do anything unless we ask.",
@@ -179,7 +179,7 @@ export default {
   // an inconvenience while falling back on "what you're waiting for" is not.
   "ui.heading": "What brings you in today?",
   "ui.sub": "Say it in your own words, in any language. We'll figure out where you need to go — and what you're waiting for.",
-  "ui.disclaimer": "This guide helps you find care. It does not diagnose.",
+  "ui.disclaimer": "This guide helps you find your way. It doesn't diagnose.",
   "ui.placeholder": "I have…",
   "ui.placeholderAnswer": "Type your answer…",
   "ui.btn.continue": "Continue",

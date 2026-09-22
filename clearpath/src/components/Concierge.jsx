@@ -29,7 +29,7 @@ export default function Concierge({ patientId, questions = [], hint }) {
       <p className="kicker">Ask ClearPath</p>
       <h3 style={{ margin: "0 0 6px", fontSize: 18 }}>Not sure what's happening?</h3>
       <p className="small muted">
-        {hint || "This guide can explain the wait and help you phrase questions for your care team. It does not diagnose."}
+        {hint || "This guide can explain the wait and help you phrase questions for your care team. It doesn't diagnose."}
       </p>
       {questions.length > 0 && (
         <div className="chips" style={{ justifyContent: "flex-start", marginTop: 12 }}>

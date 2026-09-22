@@ -32,7 +32,7 @@ export function EvidenceDrawer({ claimId, onClose }) {
             <p className="small muted" style={{ margin: "6px 0 0" }}>{current.authority?.reason}</p>
           </div>
           <div>
-            <p className="kicker">How this value was produced</p>
+            <p className="kicker">Where this number came from</p>
             <ol className="lineage">
               {chain.map((node) => (
                 <li key={node.id} className={node.id === claimId ? "current" : ""}>
@@ -46,8 +46,8 @@ export function EvidenceDrawer({ claimId, onClose }) {
           </div>
           <p className="small muted" style={{ margin: 0 }}>
             {current.epistemic?.tone === "fact"
-              ? "A person verified this measurement. It is still not an order and it does not change treatment by itself."
-              : "This has not been verified. It is visible here and it is not being used to move care."}
+              ? "Someone checked this measurement. It still isn't an order, and it doesn't change treatment by itself."
+              : "Nobody has signed off on this yet. You can see it here, and it isn't being used to change care."}
           </p>
         </div>
       )}

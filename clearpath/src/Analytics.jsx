@@ -83,18 +83,20 @@ export default function Analytics({ embedded }) {
         </header>
       )}
 
-      <div className="kpi-grid">
-        <StatCard value={data.totalToday} label="Patients today" />
-        <StatCard value={data.currentlyWaiting} label="Currently in line" />
-        <StatCard value={data.discharged} label="Discharged" />
-        <StatCard value={data.kpis?.stuck ?? 0} label="Delayed now" alert={data.kpis?.stuck > 0} />
-        <StatCard value={data.kpis?.overdueBlockers ?? 0} label="Overdue dependencies" />
-        <StatCard value={data.languages?.length || 0} label="Languages today" />
-      </div>
+      {!embedded && (
+        <div className="kpi-grid">
+          <StatCard value={data.totalToday} label="Patients today" />
+          <StatCard value={data.currentlyWaiting} label="Currently in line" />
+          <StatCard value={data.discharged} label="Discharged" />
+          <StatCard value={data.kpis?.stuck ?? 0} label="Delayed now" alert={data.kpis?.stuck > 0} />
+          <StatCard value={data.kpis?.overdueBlockers ?? 0} label="Overdue work" />
+          <StatCard value={data.languages?.length || 0} label="Languages today" />
+        </div>
+      )}
 
       {data.predictions?.length > 0 && (
         <Card>
-          <p className="kicker">Operational forecast</p>
+          <p className="kicker">What&apos;s likely next</p>
           <div className="layout-2" style={{ margin: 0 }}>
             {data.predictions.map((p) => (
               <div key={p.id}>
