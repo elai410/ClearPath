@@ -5,7 +5,7 @@ import { WebSocketServer } from "ws";
 import cors from "cors";
 import { v4 as uuid } from "uuid";
 import {
-  db, migrate, addEvent, getBlockers, getEvents, blockersByPatientIds, createBlocker,
+  db, migrate, addEvent, getBlockers, getEvents, blockersByPatientIds, createBlocker, getMeta,
   openBlockerRows, escalationLevel, createEscalation, openEscalations, ackEscalation,
   closeEscalationsFor,
   insertClaim, listClaims, getClaim, verifyClaim, rejectClaim, correctClaim,
@@ -30,6 +30,7 @@ import {
   currentStage,
   STAGES,
 } from "./src/lib/journey.js";
+import { freezeAt } from "./src/lib/clock.js";
 import {
   converse,
   DEFAULT_UI,
@@ -43,6 +44,15 @@ import {
 import { DEPARTMENTS, DEPT_NAMES, DEPT_ROOM } from "./src/constants.js";
 
 migrate();
+
+const frozenNow = getMeta("frozen_now");
+if (frozenNow) {
+  const ms = Date.parse(frozenNow);
+  if (Number.isFinite(ms)) {
+    freezeAt(ms);
+    console.log(`Clock frozen at ${frozenNow}`);
+  }
+}
 
 function seedEvidence() {
   const existing = db.prepare(`SELECT COUNT(*) AS n FROM claims`).get();

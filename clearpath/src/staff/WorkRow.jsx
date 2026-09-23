@@ -92,7 +92,7 @@ export function Section({ id, kicker, title, children, empty }) {
 }
 
 /** Search, not a roster. Names are how you find work, not the work. */
-export function FindPerson({ patients, onRefresh, variant = "details" }) {
+export function FindPerson({ patients, onRefresh, variant = "details", onPick }) {
   const [q, setQ] = useState("");
   const [record, setRecord] = useState(null);
   const hits = useMemo(() => {
@@ -117,7 +117,7 @@ export function FindPerson({ patients, onRefresh, variant = "details" }) {
       {hits.length > 0 && (
         <div className={variant === "bar" ? "lookup-hits" : "stack"} style={variant === "bar" ? undefined : { gap: 8, marginTop: 8 }}>
           {hits.map((p) => (
-            <button key={p.id} type="button" className="work-copy" onClick={() => { setRecord(p); setQ(""); }} style={{ padding: "8px 0" }}>
+            <button key={p.id} type="button" className="work-copy" onClick={() => { if (onPick) { onPick(p); setQ(""); return; } setRecord(p); setQ(""); }} style={{ padding: "8px 0" }}>
               <span className="work-title">{p.name}</span>
               <span className="small muted">{p.now?.waitingFor || p.action?.label}</span>
             </button>

@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# SQLite WAL sidecars — the census db is tracked; these are not
+*.db-shm
+*.db-wal

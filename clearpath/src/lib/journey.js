@@ -1,6 +1,7 @@
 /** Shared patient-flow intelligence used by the API and the UI. */
 import { translator, normalizeLanguage, detectLanguage } from "./i18n/index.js";
 import { conceptsIn } from "./triage-terms.js";
+import { now } from "./clock.js";
 
 export const STAGES = [
   { id: "arrival",        label: "Arrival",         patient: "You've arrived",              staff: "Arrived" },
@@ -119,15 +120,15 @@ export function stageIndex(id) {
 }
 
 export function parseTime(value) {
-  if (!value) return Date.now();
+  if (!value) return now();
   const raw = String(value);
   const iso = /Z$|[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}Z`;
   const t = new Date(iso).getTime();
-  return Number.isNaN(t) ? Date.now() : t;
+  return Number.isNaN(t) ? now() : t;
 }
 
 export function waitMinutes(value) {
-  return Math.max(0, Math.floor((Date.now() - parseTime(value)) / 60000));
+  return Math.max(0, Math.floor((now() - parseTime(value)) / 60000));
 }
 
 export function formatWait(mins, lang = "en") {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import DoctorView from "./staff/DoctorView.jsx";
 import NurseView from "./staff/NurseView.jsx";
 import ManagerView from "./staff/ManagerView.jsx";
+import CommandMap from "./staff/map/CommandMap.jsx";
 import { FindPerson } from "./staff/WorkRow.jsx";
 import { fetchAgent, fetchEscalations, fetchEvidence, fetchFloorPlan, fetchFlow, WS_URL } from "./api/backend.js";
 import { Icon } from "./components/Icons.jsx";
@@ -10,6 +11,7 @@ const ROLES = [
   { id: "doctor", label: "Doctors", icon: "people", hint: "Who to see, what to sign, what still needs a look" },
   { id: "nurse", label: "Nurses", icon: "check", hint: "Your work, then the monitors" },
   { id: "manager", label: "Management", icon: "chart", hint: "What to do, what's backing up" },
+  { id: "map", label: "Command Map", icon: "pin", hint: "Where people are, and what the floor is waiting on" },
 ];
 
 function readRole() {
@@ -64,10 +66,11 @@ export default function Dashboard() {
   const doctorBadge = (evidence?.consequential || 0) + (flow?.patients || []).filter((p) => p.status === "pending_signature").length;
   const nurseBadge = (evidence?.unverified || 0);
   const managerBadge = escalations?.unacknowledged || 0;
-  const badge = { doctor: doctorBadge, nurse: nurseBadge, manager: managerBadge };
+  const mapBadge = (flow?.kpis?.stuck || 0) + (agent?.exceptions || 0);
+  const badge = { doctor: doctorBadge, nurse: nurseBadge, manager: managerBadge, map: mapBadge };
 
   return (
-    <div className="staff-app">
+    <div className={`staff-app ${role === "map" ? "map-mode" : ""}`}>
       <aside className="staff-nav">
         <h1 className="brand">ClearPath</h1>
         <div className="nav-sub">Your role</div>
@@ -92,17 +95,28 @@ export default function Dashboard() {
         <a className="nav-item" href="/">Patient view</a>
       </aside>
 
-      <main className="staff-main">
-        <div className="staff-top">
-          <div>
-            <p className="page-kicker">Yale New Haven Hospital</p>
-            <h2 className="page-title">{current.label}</h2>
-            <p className="page-sub">{current.hint}</p>
+      <main className={`staff-main ${role === "map" ? "is-map" : ""}`}>
+        {role !== "map" && (
+          <div className="staff-top">
+            <div>
+              <p className="page-kicker">Yale New Haven Hospital</p>
+              <h2 className="page-title">{current.label}</h2>
+              <p className="page-sub">{current.hint}</p>
+            </div>
+            {role !== "doctor" && (
+              <FindPerson patients={flow?.patients || []} onRefresh={load} variant="bar" />
+            )}
           </div>
-          {role !== "doctor" && (
-            <FindPerson patients={flow?.patients || []} onRefresh={load} variant="bar" />
-          )}
-        </div>
+        )}
+
+        {role === "map" && (
+          <CommandMap
+            flow={flow}
+            agent={agent}
+            floor={floor}
+            onRefresh={load}
+          />
+        )}
 
         {role === "doctor" && (
           <DoctorView

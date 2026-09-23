@@ -154,6 +154,25 @@ export function migrate() {
       PRIMARY KEY (patient_id, measure)
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS meta (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+}
+
+export function getMeta(key) {
+  const row = db.prepare(`SELECT value FROM meta WHERE key=?`).get(key);
+  return row?.value ?? null;
+}
+
+export function setMeta(key, value) {
+  db.prepare(`
+    INSERT INTO meta (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value
+  `).run(key, String(value));
 }
 
 export function addEvent(patientId, kind, title, detail = "") {
