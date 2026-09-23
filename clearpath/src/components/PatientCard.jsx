@@ -109,7 +109,7 @@ export default function PatientCard({ patient, onRefresh }) {
               second-person version of this on their visit page. */}
           {patient.parallel?.length > 0 && (
             <div style={{ marginTop: 12 }}>
-              <p className="kicker">Can run in parallel</p>
+              <p className="kicker">Doesn't need them in the room</p>
               {patient.parallel.map((p) => (
                 <div key={p.id} style={{ marginBottom: 8 }}>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{p.title}</div>

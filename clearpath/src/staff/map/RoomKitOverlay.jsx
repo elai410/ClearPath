@@ -21,6 +21,9 @@ function kitLine(section) {
 }
 
 export default function RoomKitOverlay({ section, selected, zoom, onSelect }) {
+  const quietFar = zoom === "far" && section.tone === "quiet" && !section.needs.length && !section.visits.length;
+  if (quietFar && !selected) return null;
+
   const compact = zoom === "far" && section.tone === "quiet";
   const work = visitLine(section);
   const kit = kitLine(section);
@@ -31,7 +34,8 @@ export default function RoomKitOverlay({ section, selected, zoom, onSelect }) {
       center
       distanceFactor={compact ? 18 : 15}
       zIndexRange={[5, 0]}
-      style={{ pointerEvents: "auto" }}
+      wrapperClass="map-html"
+      style={{ pointerEvents: "none" }}
     >
       <button
         type="button"

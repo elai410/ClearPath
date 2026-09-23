@@ -106,7 +106,7 @@ export default function NurseView({ flow, evidence, agent, escalations, floor, o
   return (
     <div className="role-view">
       <PageMap items={MAP} />
-      <p className="role-lead">{agent || evidence ? leadLine(work, exceptions, agent) : "Loading the floor…"}</p>
+      <p className="role-lead">{agent || evidence ? leadLine(work, exceptions, agent) : "Loading…"}</p>
 
       <Section id="nursing" kicker="Your work" title="Interpreters, transport, rooms" empty="Nothing in front of a nurse right now.">
         {work.map((row) => (
@@ -146,7 +146,7 @@ export default function NurseView({ flow, evidence, agent, escalations, floor, o
                 </Button>
               </div>
             )}
-            {exceptions.length === 0 && <p className="small muted">Quiet. The numbers look fine.</p>}
+            {exceptions.length === 0 && <p className="small muted">No odd readings.</p>}
             {exceptions.map((claim) => (
               <ClaimCard key={claim.id} claim={claim} actor="nurse" busy={busy} onDone={run} compact />
             ))}

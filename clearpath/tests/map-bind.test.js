@@ -195,3 +195,33 @@ test("a census room label lands on that cubicle", () => {
   );
   assert.equal(f2.placements[0].room.label, "501");
 });
+
+test("an in-progress ED visit is not labeled ready to go", () => {
+  const occupied = occupyFloor([{
+    id: "p-james",
+    name: "James Carter",
+    department: "emergency",
+    status: "in_progress",
+    wait_minutes: 40,
+    stage: "evaluation",
+    visit_kind: "emergency",
+    urgency: "high",
+    action: { kind: "prepare-discharge", label: "Start discharge paperwork now" },
+    blockers: [{ type: "lab", title: "Troponin", status: "open" }],
+  }]);
+  const lines = overlayLines(occupied.placements[0]);
+  assert.ok(!lines.some((l) => /ready to go|discharge ready/i.test(l)));
+});
+
+test("pending signature is ready to go", () => {
+  const occupied = occupyFloor([{
+    id: "p-priya",
+    name: "Priya Shah",
+    department: "clinic",
+    status: "pending_signature",
+    wait_minutes: 12,
+    stage: "discharge_prep",
+  }]);
+  const lines = overlayLines(occupied.placements[0]);
+  assert.ok(lines.some((l) => /ready to go/i.test(l)));
+});

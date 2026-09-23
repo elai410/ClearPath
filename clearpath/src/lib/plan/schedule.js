@@ -231,7 +231,7 @@ export function governingConstraint(lists, horizonMinutes = 120) {
     return {
       ...common,
       kind: "structural",
-      headline: "We're not short-staffed — people are waiting on steps that haven't started",
+      headline: "We're not short-staffed — people are waiting on the next step",
       detail: `The busiest queue, ${top.label}, is only at ${Math.round(top.utilisation * 100)}% busy. ${waiting} task${waiting === 1 ? "" : "s"} that can't wait sit in queues that still have room, so people are waiting on the next step, not on capacity.`,
       subordinate: "Don't add staff for this. Reorder the lists below, and start the work that's already ready.",
     };
@@ -240,7 +240,7 @@ export function governingConstraint(lists, horizonMinutes = 120) {
   return {
     ...common,
     kind: "resource",
-    headline: `${top.label} is setting the pace for the whole floor`,
+      headline: `${top.label} is what's holding the floor up`,
     detail: `${Math.round(top.demandMinutes)} min of queued work against ${top.capacityMinutes} min of capacity in the next ${Math.round(horizonMinutes / 60)}h, and ${top.criticalCount} task${top.criticalCount === 1 ? "" : "s"} that can't wait sit in this queue.`,
     subordinate: offPath.length
       ? `Move the ${offPath.length} item${offPath.length === 1 ? "" : "s"} that can wait off ${top.label}, or do them later. Protecting this queue matters more than anything else right now.`

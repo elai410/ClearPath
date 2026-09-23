@@ -278,11 +278,13 @@ export default function PatientEntity({
           center
           distanceFactor={13}
           zIndexRange={[3, 0]}
-          style={{ pointerEvents: selected ? "auto" : "none" }}
+          wrapperClass="map-html"
+          style={{ pointerEvents: "none" }}
         >
           <button
             type="button"
             className={`map-overlay ${tone} is-${overlay.mode} ${selected ? "is-selected" : ""} ${watching ? "is-watching" : ""}`}
+            style={{ pointerEvents: selected ? "auto" : "none" }}
             onClick={(e) => {
               e.stopPropagation();
               onSelect?.({ type: "patient", id: placement.patient.id });

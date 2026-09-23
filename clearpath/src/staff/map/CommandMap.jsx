@@ -49,6 +49,10 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
   const equipment = occupied.equipment;
   const kitLayer = layer === "equipment";
 
+  function flyHome() {
+    setFocus((prev) => ({ target: { overview: true }, nonce: prev.nonce + 1 }));
+  }
+
   function flyTo(x, z, y = 16) {
     setFocus((prev) => ({ target: { x, y, z }, nonce: prev.nonce + 1 }));
   }
@@ -107,7 +111,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
   function goFloor(n) {
     setLevel(n);
     setSelection(null);
-    setFocus((prev) => ({ target: { x: 0, y: 24, z: 0 }, nonce: prev.nonce + 1 }));
+    flyHome();
   }
 
   function goLayer(next) {
@@ -163,6 +167,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
         onSelect={select}
         onZoom={setZoom}
         layer={layer}
+        onReset={flyHome}
       />
 
       <div className="map-hud map-hud-tl">
@@ -170,7 +175,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
         <h2 className="map-hud-title">{layout.name}</h2>
         <p className="small muted" style={{ margin: 0 }}>
           {kitLayer
-            ? `${counts.tracked || 0} tracked · ${counts.requested || 0} requested · ${counts.needed || 0} short`
+            ? `${counts.tracked || 0} pieces · ${counts.requested || 0} on the way · ${counts.needed || 0} short`
             : `${people} on this floor${kpis ? ` · ${kpis.active} in hospital · ${kpis.waiting} in line` : ""}`}
         </p>
         <div className="map-floors">
@@ -181,7 +186,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
           <button type="button" className={!kitLayer ? "is-on" : ""} onClick={() => goLayer("people")}>People</button>
           <button type="button" className={kitLayer ? "is-on" : ""} onClick={() => goLayer("equipment")}>Equipment</button>
         </div>
-        <p className="map-controls-hint">Left-drag to move · Right-drag to orbit · Scroll to zoom · WASD</p>
+        <p className="map-controls-hint">Drag to move · Right-drag to turn · Scroll to zoom · WASD</p>
       </div>
 
       <div className="map-hud map-hud-tr">
@@ -212,7 +217,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
         {kitLayer ? (
           openNeeds.length > 0 && (
             <>
-              <p className="kicker" style={{ margin: "12px 0 6px" }}>Opened by the visit</p>
+              <p className="kicker" style={{ margin: "12px 0 6px" }}>Short for a visit</p>
               <div className="map-hot">
                 {openNeeds.map((req) => (
                   <button
@@ -230,7 +235,7 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
         ) : (
           hot.length > 0 && (
             <>
-              <p className="kicker" style={{ margin: "12px 0 6px" }}>Activity</p>
+              <p className="kicker" style={{ margin: "12px 0 6px" }}>Needs a look</p>
               <div className="map-hot">
                 {hot.map((pl) => (
                   <button key={pl.patient.id} type="button" onClick={() => select({ type: "patient", id: pl.patient.id })}>
@@ -249,15 +254,15 @@ export default function CommandMap({ flow, agent, floor, onRefresh }) {
           <>
             <span><i className="lg quiet" /> Available</span>
             <span><i className="lg use" /> In use</span>
-            <span><i className="lg warn" /> Requested</span>
-            <span><i className="lg alert" /> Needed</span>
+            <span><i className="lg warn" /> On the way</span>
+            <span><i className="lg alert" /> Short</span>
           </>
         ) : (
           <>
-            <span><i className="lg quiet" /> Steady</span>
+            <span><i className="lg quiet" /> All right</span>
             <span><i className="lg wait" /> Waiting</span>
-            <span><i className="lg warn" /> Blocked</span>
-            <span><i className="lg alert" /> Needs a look</span>
+            <span><i className="lg warn" /> Held up</span>
+            <span><i className="lg alert" /> Check vitals</span>
           </>
         )}
       </div>

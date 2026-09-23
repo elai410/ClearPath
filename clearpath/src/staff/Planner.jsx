@@ -17,13 +17,13 @@ export function PresenceSplit({ floor, compact }) {
   const bar = (
     <>
       <div className="split-bar" role="img"
-        aria-label={`${pct}% with the patient, ${100 - pct}% waiting around`}>
+        aria-label={`${pct}% with the patient, ${100 - pct}% wait time`}>
         <i className="presence" style={{ width: `${pct}%` }} />
         <i className="coordination" style={{ width: `${100 - pct}%` }} />
       </div>
       <div className="row" style={{ marginTop: 8, gap: 18 }}>
         <span className="small"><i className="swatch presence" /> Needs them in the room · {hours(floor.presenceMinutes)}</span>
-        <span className="small"><i className="swatch coordination" /> Waiting around · {hours(floor.coordinationMinutes)}</span>
+        <span className="small"><i className="swatch coordination" /> Wait time · {hours(floor.coordinationMinutes)}</span>
       </div>
     </>
   );
@@ -31,7 +31,7 @@ export function PresenceSplit({ floor, compact }) {
     return (
       <div className="presence-strip">
         <p className="small muted" style={{ margin: "0 0 8px" }}>
-          {hours(floor.coordinationMinutes)} of the next {hours(floor.remainingMinutes)} is waiting around, not being seen
+          {hours(floor.coordinationMinutes)} of the next {hours(floor.remainingMinutes)} is wait time, not face-to-face
           · {floor.patients} patients
         </p>
         {bar}
@@ -42,10 +42,10 @@ export function PresenceSplit({ floor, compact }) {
     <Card>
       <p className="kicker">Where the time goes</p>
       <h2 style={{ margin: "0 0 4px", fontSize: 22 }}>
-        {hours(floor.coordinationMinutes)} of the next {hours(floor.remainingMinutes)} is waiting around, not being seen
+        {hours(floor.coordinationMinutes)} of the next {hours(floor.remainingMinutes)} is wait time, not face-to-face
       </h2>
       <p className="small muted" style={{ margin: "0 0 14px" }}>
-        Across {floor.patients} patients. Only {pct}% of the remaining time actually needs them in the room —
+        Across {floor.patients} patients. Only {pct}% of the remaining time needs them in the room —
         the rest is waiting on the next step.
       </p>
       {bar}
@@ -77,7 +77,7 @@ export function ConstraintCard({ constraint }) {
       <h2 style={{ margin: "0 0 8px", fontSize: 22 }}>{constraint.headline}</h2>
       <p className="small" style={{ margin: "0 0 10px" }}>{constraint.detail}</p>
       <p className="small" style={{ margin: 0 }}>
-        <strong>Work around this first:</strong> {constraint.subordinate}
+        <strong>Start here:</strong> {constraint.subordinate}
       </p>
     </Card>
   );
@@ -155,18 +155,18 @@ export function PatientPlan({ patientId, name, onClose }) {
   }, [patientId]);
 
   return (
-    <Modal title={`${name} — visit plan`} onClose={onClose}>
+    <Modal title={`${name} — what's left`} onClose={onClose}>
       {error && <p className="small muted">Could not load this plan.</p>}
-      {!plan && !error && <p className="small muted">Loading the plan…</p>}
+      {!plan && !error && <p className="small muted">Loading…</p>}
       {plan && (
         <div className="stack" style={{ gap: 16 }}>
           <div>
             <p className="kicker" style={{ margin: 0 }}>{plan.presentation}</p>
             <h3 style={{ margin: "4px 0 0", fontSize: 20 }}>
-              Likely done in {hours(plan.forecast.p50)}, pretty sure by {hours(plan.forecast.confident)}
+              About {hours(plan.forecast.p50)} from here, usually by {hours(plan.forecast.confident)}
             </h3>
             <p className="small muted" style={{ margin: "4px 0 0" }}>
-              Of that, {hours(plan.presenceMinutes)} actually needs them here.
+              Of that, {hours(plan.presenceMinutes)} needs them in the room.
             </p>
           </div>
 
@@ -185,7 +185,7 @@ export function PatientPlan({ patientId, name, onClose }) {
           )}
 
           <div>
-            <p className="kicker">The steps that set when they can leave</p>
+            <p className="kicker">What has to happen before they can leave</p>
             <ol className="crit-path">
               {plan.criticalPath.map((s) => (
                 <li key={s.id} className={s.state === "done" ? "done" : ""}>
@@ -198,7 +198,7 @@ export function PatientPlan({ patientId, name, onClose }) {
 
           {plan.startableNow.length > 0 && (
             <div>
-              <p className="kicker">Can start now, without them in the room</p>
+              <p className="kicker">Can do now, without them in the room</p>
               {plan.startableNow.map((s) => (
                 <div key={s.id} className="small" style={{ marginTop: 4 }}>
                   · <strong>{s.label}</strong>
@@ -255,7 +255,6 @@ export function ControlCard({ control, onStaged }) {
         {rec ? rec.title : "Leave things as they are"}
       </h2>
       <p className="small muted" style={{ margin: "0 0 10px" }}>
-        We looked at {control.considered} {control.considered === 1 ? "option" : "options"} against doing nothing.
         Extra wait right now is about {control.baseline.delay} minutes · {control.baseline.queueAt45} tasks still waiting in 45 minutes.
       </p>
       {rec ? (
@@ -280,7 +279,7 @@ export function ControlCard({ control, onStaged }) {
         </div>
       ) : (
         <div className="plan-note no">
-          None of the options beat doing nothing by enough. Check the items below if you want.
+          Leave the order as it is. Changing it wouldn&apos;t save enough time.
         </div>
       )}
       {control.needsHuman?.length > 0 && (
@@ -296,7 +295,7 @@ export function ControlCard({ control, onStaged }) {
       )}
       {control.alternatives?.length > 0 && (
         <p className="small muted" style={{ marginTop: 10 }}>
-          Also looked at: {control.alternatives.map((a) => `${a.title} (${a.minutesSaved}m)`).join("; ")}.
+          Other options: {control.alternatives.map((a) => `${a.title} (${a.minutesSaved}m)`).join("; ")}.
         </p>
       )}
     </Card>
@@ -309,7 +308,7 @@ export function Trajectory({ trajectory }) {
     <Card className="trajectory">
       <div className="spread" style={{ marginBottom: 8 }}>
         <div>
-          <p className="kicker" style={{ margin: 0 }}>If we keep going like this</p>
+          <p className="kicker" style={{ margin: 0 }}>If nothing changes</p>
           <h2 style={{ margin: "2px 0 0", fontSize: 22 }}>
             {trajectory.savedMinutes >= 15
               ? `Seeing people in a different order could save ${trajectory.savedMinutes} minutes`
@@ -393,7 +392,7 @@ export default function Planner() {
     return () => clearInterval(poll);
   }, [load]);
 
-  if (!floor) return <p className="muted">Loading the floor plan…</p>;
+  if (!floor) return <p className="muted">Loading…</p>;
   if (!floor.patients) {
     return <Empty title="No active patients" body="Plans are built from who is in the hospital right now." />;
   }
@@ -401,8 +400,8 @@ export default function Planner() {
   return (
     <div>
       <div className="kpi-grid kpi-4">
-        <div className="kpi"><b>{hours(floor.remainingMinutes)}</b><span>Time left in visits</span></div>
-        <div className="kpi"><b>{hours(floor.coordinationMinutes)}</b><span>Of that, waiting around</span></div>
+        <div className="kpi"><b>{hours(floor.remainingMinutes)}</b><span>Time left in today&apos;s visits</span></div>
+        <div className="kpi"><b>{hours(floor.coordinationMinutes)}</b><span>Of that, wait time</span></div>
         <div className={`kpi ${floor.minutesSaved > 0 ? "alert" : ""}`}>
           <b>{floor.minutesSaved}m</b><span>Minutes you could save by changing the order</span>
         </div>
@@ -416,8 +415,8 @@ export default function Planner() {
 
       {floor.agent && (
         <p className="small muted" style={{ margin: "0 0 12px" }}>
-          Passive agent watching {floor.agent.watching} beds · {floor.agent.silent} quiet · {floor.agent.exceptions} exception{floor.agent.exceptions === 1 ? "" : "s"}.
-          Vitals are a stream. They are not a step in the visit.
+          Watching {floor.agent.watching} beds · {floor.agent.silent} quiet · {floor.agent.exceptions} need a look.
+          Vitals run in the background. They aren&apos;t a visit step.
         </p>
       )}
       {floor.control && <ControlCard control={floor.control} onStaged={load} />}

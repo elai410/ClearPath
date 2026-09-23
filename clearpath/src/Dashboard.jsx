@@ -11,7 +11,7 @@ const ROLES = [
   { id: "doctor", label: "Doctors", icon: "people", hint: "Who to see, what to sign, what still needs a look" },
   { id: "nurse", label: "Nurses", icon: "check", hint: "Your work, then the monitors" },
   { id: "manager", label: "Management", icon: "chart", hint: "What to do, what's backing up" },
-  { id: "map", label: "Command Map", icon: "pin", hint: "Where people are, and what the floor is waiting on" },
+  { id: "map", label: "Command Map", icon: "pin", hint: "Who's where, and what each room is waiting on" },
 ];
 
 function readRole() {

@@ -2,7 +2,7 @@ import { callPatient, advancePatient, prepareDischarge, escalateBlocker } from "
 import { Badge, Button, Card, Empty } from "../components/ui.jsx";
 
 export default function CommandCenter({ flow, onRefresh, onOpenPatient, showTasks = true, showKpis = true, showPredictions = true }) {
-  if (!flow) return <p className="muted">Loading the floor…</p>;
+  if (!flow) return <p className="muted">Loading…</p>;
   const { kpis, bottlenecks, queues, predictions, tasks } = flow;
   const maxWait = Math.max(...queues.map((q) => q.avgWait), 1);
 
@@ -52,8 +52,8 @@ export default function CommandCenter({ flow, onRefresh, onOpenPatient, showTask
         {showTasks ? (
           <Card>
             <p className="kicker">Do next</p>
-            <h2 style={{ margin: "0 0 8px", fontSize: 20 }}>Best next moves</h2>
-            {tasks.length === 0 && <p className="small muted">Nothing needs intervention right now.</p>}
+            <h2 style={{ margin: "0 0 8px", fontSize: 20 }}>What to do next</h2>
+            {tasks.length === 0 && <p className="small muted">Nothing to do right now.</p>}
             {tasks.map((t) => (
               <div className="task" key={t.id}>
                 <div className={`prio p${Math.min(t.priority, 3)}`}>{t.priority}</div>
@@ -113,8 +113,8 @@ export default function CommandCenter({ flow, onRefresh, onOpenPatient, showTask
           {showPredictions && (
             <Card>
               <p className="kicker">Looking ahead</p>
-              <h2 style={{ margin: "0 0 12px", fontSize: 20 }}>What&apos;s likely next</h2>
-              {predictions.length === 0 && <p className="small muted">Nothing strong to call from the current floor.</p>}
+              <h2 style={{ margin: "0 0 12px", fontSize: 20 }}>What&apos;s coming up</h2>
+              {predictions.length === 0 && <p className="small muted">Nothing standing out.</p>}
               {predictions.map((p) => (
                 <div className="bn" key={p.id}>
                   <span className="severity info">{p.confidence}</span>
@@ -133,8 +133,8 @@ export default function CommandCenter({ flow, onRefresh, onOpenPatient, showTask
       {!showTasks && showPredictions && (
         <Card>
           <p className="kicker">Looking ahead</p>
-          <h2 style={{ margin: "0 0 12px", fontSize: 20 }}>What&apos;s likely next</h2>
-          {predictions.length === 0 && <p className="small muted">Nothing strong to call from the current floor.</p>}
+          <h2 style={{ margin: "0 0 12px", fontSize: 20 }}>What&apos;s coming up</h2>
+          {predictions.length === 0 && <p className="small muted">Nothing standing out.</p>}
           {predictions.map((p) => (
             <div className="bn" key={p.id}>
               <span className="severity info">{p.confidence}</span>

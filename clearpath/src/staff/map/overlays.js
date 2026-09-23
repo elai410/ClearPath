@@ -74,14 +74,13 @@ export function overlayLines(placement) {
   }
 
   if (
-    patient.stage === "discharge_prep"
-    || patient.action?.kind === "prepare-discharge"
+    patient.status === "pending_signature"
+    || patient.stage === "discharge_prep"
     || patient.action?.kind === "discharge"
-    || paperwork
   ) {
     return [
-      "Discharge ready",
-      paperwork ? paperwork.title || "Missing paperwork" : patient.now?.waitingFor,
+      "Ready to go",
+      paperwork ? paperwork.title || "Waiting on paperwork" : patient.now?.waitingFor,
     ].filter(Boolean);
   }
 

@@ -32,14 +32,14 @@ export default function ManagerView({ flow, floor, escalations, onRefresh }) {
       <PageMap items={MAP} />
       <p className="role-lead">
         {floor?.constraint?.headline
-          || "The floor is running inside expected times."}
+          || "Visits are running on time."}
       </p>
 
       {floor && (
         <>
           <div className="kpi-grid kpi-4">
-            <div className="kpi"><b>{hours(floor.remainingMinutes)}</b><span>Time left in visits</span></div>
-            <div className="kpi"><b>{hours(floor.coordinationMinutes)}</b><span>Of that, waiting around</span></div>
+            <div className="kpi"><b>{hours(floor.remainingMinutes)}</b><span>Time left in today&apos;s visits</span></div>
+            <div className="kpi"><b>{hours(floor.coordinationMinutes)}</b><span>Of that, wait time</span></div>
             <div className={`kpi ${floor.minutesSaved > 0 ? "alert" : ""}`}>
               <b>{floor.minutesSaved}m</b><span>Could save by changing the order</span>
             </div>
@@ -93,7 +93,7 @@ export default function ManagerView({ flow, floor, escalations, onRefresh }) {
             )}
           </Fold>
           {floor?.trajectory && (
-            <Fold id="forecast" title="If we keep going like this" hint={floor.minutesSaved > 0 ? `Could save ${floor.minutesSaved}m` : "Small difference"}>
+            <Fold id="forecast" title="If nothing changes" hint={floor.minutesSaved > 0 ? `Could save ${floor.minutesSaved}m` : "Small difference"}>
               <Trajectory trajectory={floor.trajectory} />
             </Fold>
           )}

@@ -119,7 +119,7 @@ test("an unsaturated floor is diagnosed as structural, not as a staffing gap", (
   assert.equal(c.kind, "structural");
   assert.ok(c.utilisationPct < 80, `utilisation was ${c.utilisationPct}%`);
   assert.match(c.subordinate, /Don't add staff/);
-  assert.match(c.headline, /waiting on steps/);
+  assert.match(c.headline, /waiting on the next step/);
 });
 
 test("a busy resource nobody is waiting on is not the constraint", () => {

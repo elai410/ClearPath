@@ -90,9 +90,9 @@ export function needsFor(patient, placement) {
   const slotKind = placement?.slot?.kind;
 
   if (slotKind === "bed") {
-    addNeed(occupy, "monitor", "Bay is occupied", urgency, "occupy");
-    addNeed(occupy, "iv-pump", "Bay is occupied", urgency, "occupy");
-    addNeed(occupy, "suction", "Bay is occupied", urgency, "occupy");
+    addNeed(occupy, "monitor", "Bed in use", urgency, "occupy");
+    addNeed(occupy, "iv-pump", "Bed in use", urgency, "occupy");
+    addNeed(occupy, "suction", "Bed in use", urgency, "occupy");
   }
 
   for (const blocker of open) {

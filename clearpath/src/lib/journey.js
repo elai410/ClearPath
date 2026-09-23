@@ -360,7 +360,7 @@ export function recommendedAction(patient, blockers = []) {
       id: "call-now",
       kind: "call",
       label: "Call this patient now",
-      reason: `High urgency, waiting ${formatWait(mins)}. Do not leave them behind a standard queue.`,
+      reason: `High urgency, waiting ${formatWait(mins)}. Don't leave them behind the regular line.`,
       priority: 1,
     };
   }
@@ -381,17 +381,24 @@ export function recommendedAction(patient, blockers = []) {
       id: "advance",
       kind: "advance",
       label: "They're ready — update the status",
-      reason: "Nothing is actually pending. This patient is blocked only because the status was not updated.",
+      reason: "Nothing's pending. Update the status so the next step can start.",
       priority: 2,
     };
   }
 
-  if (["evaluation", "testing", "in_progress", "pending_test"].includes(patient.status) && mins >= 20 && !open.some((b) => b.type === "documentation")) {
+  const acute = patient.urgency === "high"
+    || ["emergency", "obstetric", "behavioral"].includes(String(patient.visit_kind || "").toLowerCase());
+  if (
+    !acute
+    && ["evaluation", "testing", "in_progress", "pending_test"].includes(patient.status)
+    && mins >= 20
+    && !open.some((b) => b.type === "documentation" || b.type === "signature")
+  ) {
     return {
       id: "prep-discharge",
       kind: "prepare-discharge",
       label: "Start discharge paperwork now",
-      reason: "Care is underway. Paperwork and pharmacy can start now instead of after the last clinical step.",
+      reason: "Care is still underway. Pharmacy and papers can start before the last step.",
       priority: 3,
     };
   }
@@ -569,7 +576,7 @@ export function computeFlow(patients, blockersByPatient = {}, deptNames = {}) {
   const waiting = enriched.filter((p) => p.status === "waiting");
   const ready = enriched.filter((p) => p.action.kind === "advance");
   const dischargeReady = enriched.filter((p) =>
-    ["discharge_prep", "discharge"].includes(p.stage) || p.action.kind === "discharge" || p.action.kind === "prepare-discharge"
+    p.status === "pending_signature" || p.stage === "discharge_prep" || p.action?.kind === "discharge"
   );
 
   const blockerBag = [];

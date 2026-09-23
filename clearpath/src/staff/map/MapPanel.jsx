@@ -66,14 +66,14 @@ function PlanPeek({ patientId }) {
   if (!plan) return null;
   return (
     <div className="map-plan-peek">
-      <p className="kicker" style={{ margin: 0 }}>Visit plan</p>
+      <p className="kicker" style={{ margin: 0 }}>What's left</p>
       <p style={{ margin: "4px 0 0", fontWeight: 650 }}>
-        Likely done in {plan.forecast?.p50}m
-        {plan.blockedBy ? ` · held by ${plan.blockedBy.label}` : ""}
+        About {plan.forecast?.p50} minutes from here
+        {plan.blockedBy ? ` · waiting on ${plan.blockedBy.label}` : ""}
       </p>
       {plan.startableNow?.length > 0 && (
         <p className="small muted" style={{ margin: "4px 0 0" }}>
-          Can start now: {plan.startableNow.map((s) => s.label).join(", ")}
+          Can do now: {plan.startableNow.map((s) => s.label).join(", ")}
         </p>
       )}
     </div>
@@ -94,7 +94,7 @@ export function PatientPanel({ placement, floor, onRefresh, onClose, onBack, bac
         backLabel={backLabel}
       >
         <p className="small" style={{ margin: 0 }}>
-          Staff on this floor. Not a patient record — they are here so the rooms look occupied the way a working unit does.
+          On duty. Not a patient.
         </p>
       </PanelShell>
     );
@@ -111,7 +111,7 @@ export function PatientPanel({ placement, floor, onRefresh, onClose, onBack, bac
         backLabel={backLabel}
       >
         <p className="small" style={{ margin: 0 }}>
-          Sitting with {patient.visiting}. Not a patient record — family or companion in the room.
+          Family with {patient.visiting}.
         </p>
       </PanelShell>
     );
@@ -139,7 +139,10 @@ export function PatientPanel({ placement, floor, onRefresh, onClose, onBack, bac
 
       <p className="small" style={{ margin: "0 0 10px" }}>
         {patient.now?.headline || lines[0]}
-        {patient.now?.waitingFor ? ` Waiting on ${patient.now.waitingFor}.` : ""}
+        {patient.now?.waitingFor
+          && !String(patient.now.headline || "").toLowerCase().includes(String(patient.now.waitingFor).toLowerCase())
+          ? ` Waiting on ${patient.now.waitingFor}.`
+          : ""}
       </p>
 
       <VitalsBlock vitals={placement.vitals} exception={placement.exception} />
@@ -160,7 +163,7 @@ export function PatientPanel({ placement, floor, onRefresh, onClose, onBack, bac
 
       {opp.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <p className="kicker">Can run in parallel</p>
+          <p className="kicker">Doesn't need them in the room</p>
           {opp.map((item) => (
             <p key={item.id || item.title} className="small" style={{ margin: "2px 0" }}>
               {item.title}
@@ -209,7 +212,7 @@ export function AreaPanel({ area, resource, occupied, layer, onSelectPatient, on
   return (
     <PanelShell
       label={title}
-      kicker={area.kind}
+      kicker={area.kind === "clinical" ? "Beds" : area.kind === "waiting" ? "Waiting" : area.kind === "intake" ? "Intake" : area.kind}
       title={title}
       onClose={onClose}
     >
@@ -326,8 +329,8 @@ export function ResourcePanel({ station, occupied, layer, onSelectPatient, onSel
 const STATUS_COPY = {
   available: "Available",
   "in-use": "In use",
-  requested: "Requested",
-  needed: "Needed",
+  requested: "On the way",
+  needed: "Short",
 };
 
 function kitStatus(item) {
@@ -367,7 +370,7 @@ function RequestKitList({ roomId, zoneId, occupied, onRequestKit }) {
             onClick={() => onRequestKit?.({ kind, roomId: roomId || null, zoneId })}
           >
             <strong>{KIND_META[kind].label}</strong>
-            <span>{busy ? "Already opened" : onHand ? "In this room" : "Pull to this room"}</span>
+            <span>{busy ? "Already asked for" : onHand ? "In this room" : "Bring to this room"}</span>
           </button>
         );
       })}
@@ -402,7 +405,7 @@ function AreaEquipmentPanel({ area, resource, occupied, onSelectPatient, onSelec
       label={title}
       kicker="Equipment"
       title={title}
-      detail={`${kit.filter((i) => !i.ghost).length} tracked here`}
+      detail={`${kit.filter((i) => !i.ghost).length} in this room`}
       onClose={onClose}
       footer={onRequestKit ? (
         <Button
@@ -417,9 +420,9 @@ function AreaEquipmentPanel({ area, resource, occupied, onSelectPatient, onSelec
     >
       {requesting && (
         <div style={{ marginBottom: 10 }}>
-          <p className="kicker">What this room needs</p>
+          <p className="kicker">Ask for</p>
           <p className="small muted" style={{ margin: "0 0 6px" }}>
-            Tell the floor to pull it here. A visit may already have opened the same pull.
+            From the closet or another unit. Skip it if it's already on the way.
           </p>
           <RequestKitList
             roomId={roomId}
@@ -431,14 +434,14 @@ function AreaEquipmentPanel({ area, resource, occupied, onSelectPatient, onSelec
       )}
       <div className="map-area-stats">
         <div><b>{available}</b><span>Available</span></div>
-        <div><b>{live}</b><span>In use / requested</span></div>
-        <div><b>{needs.length}</b><span>Still needed</span></div>
+          <div><b>{live}</b><span>In use / on the way</span></div>
+          <div><b>{needs.length}</b><span>Still needed</span></div>
         <div><b>{kit.filter((i) => i.status === "needed").length}</b><span>Short</span></div>
       </div>
 
       <div style={{ marginTop: 6 }}>
         <p className="kicker">Required supplies</p>
-        {needs.length === 0 && <p className="small muted">Nothing extra opened for a visit.</p>}
+        {needs.length === 0 && <p className="small muted">Nothing extra for the visit.</p>}
         {needs.map((req) => (
           <button
             key={req.id}
@@ -453,8 +456,8 @@ function AreaEquipmentPanel({ area, resource, occupied, onSelectPatient, onSelec
       </div>
 
       <div style={{ marginTop: 6 }}>
-        <p className="kicker">Visits in this room</p>
-        {visits.length === 0 && <p className="small muted">No visit on the board here.</p>}
+        <p className="kicker">Who's in this room</p>
+        {visits.length === 0 && <p className="small muted">Nobody in this room.</p>}
         {visits.map((pl) => (
           <button
             key={pl.patient.id}
@@ -470,7 +473,7 @@ function AreaEquipmentPanel({ area, resource, occupied, onSelectPatient, onSelec
 
       <div style={{ marginTop: 6 }}>
         <p className="kicker">Here now</p>
-        {kit.length === 0 && <p className="small muted">No tracked kit in this room.</p>}
+        {kit.length === 0 && <p className="small muted">No equipment listed here.</p>}
         {kit.map((item) => (
           <button
             key={item.id}
@@ -492,7 +495,7 @@ export function EquipmentPanel({ item, onClose, onBack, backLabel }) {
   return (
     <PanelShell
       label={item.label}
-      kicker={item.ghost ? "Need" : "Tracked"}
+      kicker={item.ghost ? "Need" : "Equipment"}
       title={itemTitle(item)}
       detail={[controlLabel(item), kitStatus(item)].filter(Boolean).join(" · ")}
       onClose={onClose}
@@ -508,10 +511,10 @@ export function EquipmentPanel({ item, onClose, onBack, backLabel }) {
       </div>
       <p className="small" style={{ margin: "0 0 10px" }}>
         {req
-          ? `${req.why} in ${req.roomLabel}. The visit opened this — nobody had to request it from the map.`
+          ? `${req.why} in ${req.roomLabel}. Needed for this visit — already on the list.`
           : item.destLabel
-            ? `Allocated to ${item.destLabel}.`
-            : `Home position. ${KIND_META[item.kind]?.label || item.label}.`}
+            ? `Assigned to ${item.destLabel}.`
+            : `Stored here.`}
       </p>
       {req && (
         <div className="plan-note clock" style={{ marginBottom: 10 }}>
@@ -522,7 +525,7 @@ export function EquipmentPanel({ item, onClose, onBack, backLabel }) {
         </div>
       )}
       <p className="small muted" style={{ margin: 0 }}>
-        Sensor ping on this unit. Position updates when the next fix lands, not as a continuous walk.
+        Last seen here.
       </p>
     </PanelShell>
   );
